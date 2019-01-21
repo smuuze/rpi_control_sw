@@ -27,7 +27,7 @@ RM			:= rm -rf
 MK			:= mkdir
 CP			:= cp
 
-ECHO 			:= @
+ECHO 			:=
 
 # --------- Message Output
 
@@ -143,7 +143,7 @@ clean:
 
 %.o:
 	@echo Generating Object from: $<
-	$(ECHO) $(CC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(ECHO) $(CC) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
