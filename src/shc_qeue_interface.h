@@ -43,4 +43,4 @@ u8 qeue_deqeue(MSG_QEUE* p_qeue, STRING_BUFFER* p_msg_to);
  */
 u8 qeue_is_empty(MSG_QEUE* p_qeue);
 
-#endif _SHC_QEUE_INTERFACE_H_
+#endif // _SHC_QEUE_INTERFACE_H_

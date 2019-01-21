@@ -84,3 +84,55 @@ u8 mqtt_send_message(MQTT_INTERFACE* p_mqtt_interface, STRING_BUFFER* p_msg_from
 	
 	return NO_ERR;
 }
+// -------- MQTT CALLBACKs --------------------------------------------------------------
+
+void connectionLost_Callback(void *context, char* cause) {
+
+	if (context == NULL) {
+		return;		
+	}
+	
+	MQTT_INTERFACE* ctx = (MQTT_INTERFACE*) context;
+	
+	if (ctx->connection_lost != 0) {
+		return;		
+	}
+	
+	MQTT_DEBUG_MSG("- MQTT-Connection has been lost !!! ---\n");
+	
+	ctx->connection_lost = 1;
+}
+
+int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTTClient_message* message) {
+
+	if (context == NULL) {
+	
+		MQTT_DEBUG_MSG("- Context is zero !!! ---\n");
+		return 1;		
+	}
+	
+	if (memcmp((u8*)message->payload, "cmd", 3) == 0 || memcmp((u8*)message->payload, "exe", 3) == 0) {
+		qeue_enqeue(&myCommandQeue, message);
+	}	
+	
+	MQTTClient_free(topicName);
+	MQTTClient_freeMessage(&message);
+	
+	return 1;
+}
+
+void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token) {
+
+	if (context == NULL) {
+		return;		
+	}
+
+	MQTT_INTERFACE* ctx = (MQTT_INTERFACE*) context;
+	
+	if (ctx->msg_delivered != 0) {
+		return;		
+	}
+	
+	ctx->msg_delivered = 1;
+	MQTT_DEBUG_MSG("- Message successful delivered !!! ---\n");
+}

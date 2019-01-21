@@ -68,5 +68,20 @@ u8 mqtt_connect(MQTT_INTERFACE* p_mqtt_interface);
  */
 u8 mqtt_send_message(MQTT_INTERFACE* p_mqtt_interface, STRING_BUFFER* p_msg_from);
 
+/*!
+ *
+ */
+void connectionLost_Callback(void *context, char* cause);
+
+/*!
+ *
+ */
+int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTTClient_message* message);
+
+/*!
+ *
+ */
+void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token);
+
 
 #endif // _SHC_MQTT_INTERFACE_H_
