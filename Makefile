@@ -143,7 +143,7 @@ clean:
 
 %.o:
 	@echo Generating Object from: $<
-	$(ECHO) $(CC) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(ECHO) $(CC) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
