@@ -16,7 +16,6 @@
 #include "shc_debug_interface.h"
 
 #include <time.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <time.h>
@@ -91,7 +90,7 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
 /*!
  *
  */
-static MSG_QEUE myCommandQeue;
+MSG_QEUE myCommandQeue;
 
 
 // -------- MAIN ------------------------------------------------------------------------

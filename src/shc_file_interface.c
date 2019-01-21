@@ -16,6 +16,9 @@
 
 #include "shc_file_interface.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 

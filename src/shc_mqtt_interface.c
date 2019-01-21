@@ -15,12 +15,14 @@
 #include "shc_debug_interface.h"
 
 #include "shc_mqtt_interface.h"
+#include "shc_qeue_interface.h"
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 
 // ---- STATIC DATA -------------------------------------------------------------
 
+extern MSG_QEUE myCommandQeue;
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
