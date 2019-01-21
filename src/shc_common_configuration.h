@@ -11,6 +11,7 @@
 #define _SHC_COMMON_CONFIGURATION_H_
 
 #include "shc_project_configuration.h"
+#include "shc_common_types.h"
 #include "shc_file_interface.h"
 
 // -------- Configuration Keynames ------------------------------------------------------

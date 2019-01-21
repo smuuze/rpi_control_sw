@@ -10,9 +10,6 @@
 #ifndef _SHC_PROJECT_CONFIGURATION_H_
 #define _SHC_PROJECT_CONFIGURATION_H_
 
-#include "shc_project_configuration.h"
-
-
 // -------- DEFINITIONS -----------------------------------------------------------------
 
 #define V_MAJOR					3
