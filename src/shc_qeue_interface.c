@@ -11,6 +11,8 @@
 
 #include "shc_project_configuration.h"
 #include "shc_common_types.h"
+#include "shc_common_string.h"
+
 #include "shc_qeue_interface.h"
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------

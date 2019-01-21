@@ -28,6 +28,18 @@ typedef struct {
 /*!
  *
  */
+typedef struct {
+	
+	COM_INTERFACE_TYPE type;
+	union {
+		SPI_INTERFACE spi;
+	} data;
+	
+} COM_INTERFACE;
+
+/*!
+ *
+ */
 void spi_init(SPI_INTERFACE* p_spi_handle);
 
 /*!

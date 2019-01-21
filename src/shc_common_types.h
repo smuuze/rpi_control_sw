@@ -61,18 +61,6 @@ typedef enum {
 	USART
 } COM_INTERFACE_TYPE;
 
-/*!
- *
- */
-typedef struct {
-	
-	COM_INTERFACE_TYPE type;
-	union {
-		SPI_INTERFACE spi;
-	} data;
-	
-} COM_INTERFACE;
-
 /*
  *
  */
