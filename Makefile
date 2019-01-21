@@ -82,14 +82,6 @@ CSRC +=	$(APP_PATH)/smart_home_client.c
 
 CFLAGS +=
 
-ifdef MCU_NAME
-CFLAGS += -mmcu=$(MCU_NAME)
-endif
-
-ifdef FREQUENCY
-CFLAGS += -DF_CPU=$(FREQUENCY)
-endif
-
 CFLAGS += -Wall
 CFLAGS += -Os
 CFLAGS += -funsigned-char
@@ -102,12 +94,6 @@ LDFLAGS +=
 #LDFLAGS += --section-start init=0
 LDFLAGS += -Wl,-Map=$(OBJECT_DIRECTORY)/$(TARGET).map,--cref
 LDFLAGS += -L$(TOOLCHAIN_LIB_PATH)
-
-# --------- Loader FLags
-
-LOADER_FLAGS		:=
-LOADER_FLAGS		+= -com6
-LOADER_FLAGS		+= -f10
 
 
 # --------- Make Targets 
@@ -137,7 +123,7 @@ clean:
 %.hex: %.o
 	@echo Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
 	$(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
-	$(ECHO) $(SIZE) --mcu=$(MCU_NAME) -C $(OBJECT_DIRECTORY)/$(TARGET).o 
+	$(ECHO) $(SIZE) -C $(OBJECT_DIRECTORY)/$(TARGET).o 
 	
 %.lss:
 	@echo $(MSG_LISTING)
