@@ -1,5 +1,26 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
+// ---- INCLUDES ----------------------------------------------------------------
 
+#include "shc_project_configuration.h"
+#include "shc_common_types.h"
 #include "shc_file_interface.h"
+
+// ---- LOCAL DEFINITIONS -------------------------------------------------------
+
+
+// ---- STATIC DATA -------------------------------------------------------------
+
+
+// ---- IMPLEMENTATION ----------------------------------------------------------
+
 
 u8 file_has_changed(FILE_INTERFACE* p_file) {
 

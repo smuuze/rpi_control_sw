@@ -1,5 +1,26 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
+// ---- INCLUDES ----------------------------------------------------------------
 
+#include "shc_project_configuration.h"
+#include "shc_common_types.h"
+#include "shc_qeue_interface.h"
 #include "shc_spi_interface.h"
+
+// ---- LOCAL DEFINITIONS -------------------------------------------------------
+
+
+// ---- STATIC DATA -------------------------------------------------------------
+
+
+// ---- IMPLEMENTATION ----------------------------------------------------------
 
 void spi_init(SPI_INTERFACE* p_spi_handle) {
 

@@ -1,5 +1,25 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
+// ---- INCLUDES ----------------------------------------------------------------
 
+#include "shc_project_configuration.h"
+#include "shc_common_types.h"
 #include "shc_gpio_interface.h"
+
+// ---- LOCAL DEFINITIONS -------------------------------------------------------
+
+
+// ---- STATIC DATA -------------------------------------------------------------
+
+
+// ---- IMPLEMENTATION ----------------------------------------------------------
 
 void gpio_set_state(GPIO_INTERFACE* p_gpio, u8 state) {
 

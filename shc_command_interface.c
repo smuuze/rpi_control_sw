@@ -1,7 +1,26 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
+// ---- INCLUDES ----------------------------------------------------------------
 
+#include "shc_project_configuration.h"
 #include "shc_file_interface.h"
 #include "shc_gpio_interface.h"
 #include "shc_command_interface.h"
+
+// ---- LOCAL DEFINITIONS -------------------------------------------------------
+
+
+// ---- STATIC DATA -------------------------------------------------------------
+
+
+// ---- IMPLEMENTATION ----------------------------------------------------------
 
 static void restore_last_file_pointer(FILE_INTERFACE* p_file) {
 	p_file->act_file_pointer = p_file->last_file_pointer;

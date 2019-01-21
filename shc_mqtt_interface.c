@@ -1,9 +1,27 @@
-
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
+// ---- INCLUDES ----------------------------------------------------------------
 
 #include "shc_project_configuration.h"
+#include "shc_common_types.h"
 #include "shc_mqtt_interface.h"
 
 #include <MQTTClient.h>
+
+// ---- LOCAL DEFINITIONS -------------------------------------------------------
+
+
+// ---- STATIC DATA -------------------------------------------------------------
+
+
+// ---- IMPLEMENTATION ----------------------------------------------------------
 
 u8 mqtt_init(MQTT_INTERFACE* p_mqtt_interface) {
 
