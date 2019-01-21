@@ -1,7 +1,23 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
 #ifndef _SHC_COMMON_TYPES_H_
 #define _SHC_COMMON_TYPES_H_
 
-#include "shc_project_configuration.h"					
+#include "shc_project_configuration.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <fcntl.h>			
 
 // -------- Error-Code ------------------------------------------------------------------
 								

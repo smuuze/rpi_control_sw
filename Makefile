@@ -27,7 +27,7 @@ RM			:= rm -rf
 MK			:= mkdir
 CP			:= cp
 
-ECHO 			:=
+ECHO 			:= @
 
 # --------- Message Output
 
@@ -42,7 +42,7 @@ MSG_FINISH		:= ----- Make done -----
 
 OBJECT_DIRECTORY	:= obj
 OUTPUT_DIRECTORY	:= program
-APP_PATH		:= 
+APP_PATH		:= src
 FORMAT			:= ihex
 FREQUENCY		:= 10000000UL
 VERSION			:= 1.0

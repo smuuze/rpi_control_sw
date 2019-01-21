@@ -1,5 +1,16 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
 #ifndef _SHC_COMMON_STRING_H_
 #define _SHC_COMMON_STRING_H_
+
+#include "shc_project_configuration.h"
 
 /*
  *

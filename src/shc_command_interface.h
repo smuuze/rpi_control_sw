@@ -1,6 +1,16 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
 #ifndef _SHC_COMMAND_INTERFACE_H_
 #define _SHC_COMMAND_INTERFACE_H_
 
+#include "shc_project_configuration.h"
 #include "shc_common_types.h"
 #include "shc_file_interface.h"
 #include "shc_gpio_interface.h"

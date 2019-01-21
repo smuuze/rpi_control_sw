@@ -1,3 +1,12 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
 #ifndef _SHC_MQTT_INTERFACE_H_
 #define _SHC_MQTT_INTERFACE_H_
 

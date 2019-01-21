@@ -1,3 +1,12 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
 #ifndef _SHC_COMMON_CONFIGURATION_H_
 #define _SHC_COMMON_CONFIGURATION_H_
 

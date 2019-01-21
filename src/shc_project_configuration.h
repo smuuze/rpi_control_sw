@@ -1,12 +1,16 @@
+/* ------------------------------------------------------------------------------
+ *	Project	: Smart Home Client
+ *	File	:
+ *	Date	:
+ *	Author	: Sebastian Lesse
+ *	Brief	:
+ * ------------------------------------------------------------------------------
+ */
+ 
 #ifndef _SHC_PROJECT_CONFIGURATION_H_
 #define _SHC_PROJECT_CONFIGURATION_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <fcntl.h>
+#include "shc_project_configuration.h"
 
 
 // -------- DEFINITIONS -----------------------------------------------------------------
