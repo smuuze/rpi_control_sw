@@ -14,9 +14,8 @@
 #include "shc_common_string.h"
 #include "shc_debug_interface.h"
 
+#include "shc_mqtt_interface.h"
 #include "shc_qeue_interface.h"
-
-#include <MQTTClient.h>
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 

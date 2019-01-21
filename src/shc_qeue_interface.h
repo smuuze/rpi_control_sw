@@ -12,6 +12,7 @@
 
 #include "shc_project_configuration.h"
 #include "shc_common_types.h"
+#include "shc_mqtt_interface.h"
 
 /*!
  *

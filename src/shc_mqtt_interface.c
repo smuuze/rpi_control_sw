@@ -16,8 +16,6 @@
 
 #include "shc_mqtt_interface.h"
 
-#include <MQTTClient.h>
-
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 
