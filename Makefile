@@ -26,6 +26,7 @@ SIZE			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)size'
 RM			:= rm -rf
 MK			:= mkdir
 CP			:= cp
+MAKE_EXE		:= chmod ug=+rwx
 
 ECHO 			:= @
 
@@ -110,6 +111,8 @@ OBJ  			:= $(C_ELF_FILES)
 all: $(TARGET).hex $(TARGET).lss
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
+	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o v$(VERSION)/$(TARGET)_v$(VERSION)
+	$(ECHO) $(MAKE_EXE) v$(VERSION)/$(TARGET)_v$(VERSION)
 	@echo $(MSG_PROG_LOCATION) v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	@echo $(MSG_FINISH)
 	
