@@ -10,8 +10,8 @@
 # --------- Toolchain Path
 
 CROSS_PREFIX		:= 
-TOOLCHAIN_BIN_PATH	:=
-TOOLCHAIN_INC_PATH	:=
+TOOLCHAIN_BIN_PATH	:= /usr/bin
+TOOLCHAIN_INC_PATH	:= /usr/include
 TOOLCHAIN_LIB_PATH	:=
 
 CC			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)gcc'
@@ -111,11 +111,11 @@ LOADER_FLAGS		+= -f10
 # --------- Make Targets 
 
 C_DEPENDENCY_FILES 	:= $(CSRC:.c=.o)
-C_ELF_FILES			:= $(CSRC:.c=.elf)
-C_OBJ_FILES			:= $(CSRC:.c=.o)
-OBJ_FILES			:= $(addprefix $(OBJECT_DIRECTORY)/,$(notdir $(C_OBJ_FILES)))
-ELF_FILES			:= $(addprefix $(OBJECT_DIRECTORY)/,$(notdir $(C_ELF_FILES)))
-OBJ  				:= $(C_ELF_FILES)
+C_ELF_FILES		:= $(CSRC:.c=.elf)
+C_OBJ_FILES		:= $(CSRC:.c=.o)
+OBJ_FILES		:= $(addprefix $(OBJECT_DIRECTORY)/,$(notdir $(C_OBJ_FILES)))
+ELF_FILES		:= $(addprefix $(OBJECT_DIRECTORY)/,$(notdir $(C_ELF_FILES)))
+OBJ  			:= $(C_ELF_FILES)
 
 # --------- 
 
@@ -129,10 +129,6 @@ clean:
 	@echo Cleaning project
 	$(ECHO) $(RM) $(OBJECT_DIRECTORY)
 	$(ECHO) $(RM) v$(VERSION)
-	
-program: all
-	@echo Programming device using v$(VERSION)/$(TARGET)_v$(VERSION).hex
-	$(ECHO) $(LOADER) $(LOADER_FLAGS) -wr v$(VERSION)/$(TARGET)_v$(VERSION).hex
 
 # --------- 
 
@@ -144,14 +140,10 @@ program: all
 %.lss:
 	@echo $(MSG_LISTING)
 	$(ECHO) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
-	
-$(TARGET).o: $(OBJECT_DIRECTORY) $(OBJ)
-	@echo $(MSG_LINKING) $(OBJECT_DIRECTORY)/$(TARGET)
-	$(ECHO) $(CC) $(CFLAGS) $(LDFLAGS) $(ELF_FILES) -o $(OBJECT_DIRECTORY)/$(TARGET).o
 
 %.o:
 	@echo Generating Object from: $<
-	$(ECHO) $(CC) -c $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(ECHO) $(CC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
