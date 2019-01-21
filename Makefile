@@ -27,8 +27,6 @@ RM			:= rm -rf
 MK			:= mkdir
 CP			:= cp
 
-LOADER			:= ../Loader_IMS/loader.exe
-
 ECHO 			:= @
 
 # --------- Message Output
@@ -151,13 +149,9 @@ $(TARGET).o: $(OBJECT_DIRECTORY) $(OBJ)
 	@echo $(MSG_LINKING) $(OBJECT_DIRECTORY)/$(TARGET)
 	$(ECHO) $(CC) $(CFLAGS) $(LDFLAGS) $(ELF_FILES) -o $(OBJECT_DIRECTORY)/$(TARGET).o
 
-%.o: %.elf
+%.o:
 	@echo Generating Object from: $<
-	$(ECHO) $(LD) -c $< -o $(OBJECT_DIRECTORY)/$(notdir $@) 
-	
-%.elf: %.c
-	@echo $(MSG_COMPILING) $<
-	$(ECHO) $(CC) $(CFLAGS) $(INC_PATH) -c $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(ECHO) $(CC) -c $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
