@@ -60,8 +60,8 @@ INC_PATH += -I $(TOOLCHAIN_INC_PATH)
 # --------- Library List
 
 LIBS +=
-LIBS += -L paho-mqtt3c
-LIBS += -L wiringPi
+LIBS += -l paho-mqtt3c
+LIBS += -l wiringPi
 
 # --------- Source File List
 
@@ -97,10 +97,6 @@ CFLAGS += -funsigned-bitfields
 CFLAGS += -fpack-struct
 CFLAGS += -fshort-enums
 CFLAGS += -lm
-
-
-LIBPATH +=
-LIBPATH += -L.
 
 LDFLAGS +=
 #LDFLAGS += --section-start init=0
