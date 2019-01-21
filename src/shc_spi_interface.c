@@ -15,6 +15,11 @@
 
 #include "shc_spi_interface.h"
 
+#include <sys/ioctl.h>
+#include <linux/ioctl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 

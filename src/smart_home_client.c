@@ -4,6 +4,7 @@
 #include "shc_project_configuration.h"
 #include "shc_common_types.h"
 #include "shc_common_string.h"
+#include "shc_common_configuration.h"
 
 #include "shc_spi_interface.h"
 #include "shc_qeue_interface.h"
@@ -17,11 +18,6 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include <sys/ioctl.h>
-#include <linux/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
 
 #include <time.h>
 
