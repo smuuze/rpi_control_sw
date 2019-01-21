@@ -123,7 +123,7 @@ clean:
 %.hex: %.o
 	@echo Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
 	$(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
-	$(ECHO) $(SIZE) -C $(OBJECT_DIRECTORY)/$(TARGET).o 
+	$(ECHO) $(SIZE) $(OBJECT_DIRECTORY)/$(TARGET).o 
 	
 %.lss:
 	@echo $(MSG_LISTING)
