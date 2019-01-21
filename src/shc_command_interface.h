@@ -14,6 +14,7 @@
 #include "shc_common_types.h"
 #include "shc_file_interface.h"
 #include "shc_gpio_interface.h"
+#include "shc_spi_interface.h"
 
 /*
  *

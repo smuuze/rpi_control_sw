@@ -26,21 +26,21 @@ typedef struct {
 /*
  *
  */
-static void qeue_init(MSG_QEUE* p_qeue);
+void qeue_init(MSG_QEUE* p_qeue);
 
 /*!
  *
  */
-static u8 qeue_enqeue(MSG_QEUE* p_qeue, MQTTClient_message* p_msg_from);
+u8 qeue_enqeue(MSG_QEUE* p_qeue, MQTTClient_message* p_msg_from);
 
 /*!
  *
  */
-static u8 qeue_deqeue(MSG_QEUE* p_qeue, STRING_BUFFER* p_msg_to);
+u8 qeue_deqeue(MSG_QEUE* p_qeue, STRING_BUFFER* p_msg_to);
 
 /*!
  *
  */
-static u8 qeue_is_empty(MSG_QEUE* p_qeue);
+u8 qeue_is_empty(MSG_QEUE* p_qeue);
 
 #endif _SHC_QEUE_INTERFACE_H_

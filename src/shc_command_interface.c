@@ -23,12 +23,12 @@
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
-static void restore_last_file_pointer(FILE_INTERFACE* p_file) {
+void restore_last_file_pointer(FILE_INTERFACE* p_file) {
 	p_file->act_file_pointer = p_file->last_file_pointer;
 }
 
 
-static u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
+u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
 	
 	p_file->handle = fopen(p_file->path, "r");
 	if (p_file->handle == NULL) {
@@ -78,7 +78,7 @@ static u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_I
 	return NO_ERR;
 }
 
-static u8 cmd_handler_match_event_answer(COMMAND_INTERFACE* p_cmd, COMMAND_INTERFACE* p_cmd_match) {	
+u8 cmd_handler_match_event_answer(COMMAND_INTERFACE* p_cmd, COMMAND_INTERFACE* p_cmd_match) {	
 
 	#if EVENT_DEBUG_MSG == DEBUG_MSG
 	u8 i = 0;
@@ -91,7 +91,7 @@ static u8 cmd_handler_match_event_answer(COMMAND_INTERFACE* p_cmd, COMMAND_INTER
 	return memcmp(p_cmd->answer.payload, p_cmd_match->answer.payload, p_cmd->answer.length) == 0 ? NO_ERR : ERR_NOT_EQUAL;
 }
 
-static u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code) {
+u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code) {
 				
 	if (err_code == NO_ERR) {					
 		p_cmd->message.length +=
@@ -113,7 +113,7 @@ static u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_co
 	return NO_ERR;
 }
 
-static u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
+u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
@@ -156,7 +156,7 @@ static u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	}
 }
 
-static u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
+u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
@@ -200,12 +200,12 @@ static u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 	}
 }
 
-static u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd) {
+u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd) {
 	system((const char*)p_cmd->command.payload);
 	return NO_ERR;
 }
 		
-static u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio) {
+u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio) {
 
 	if (p_cmd->command.length == 0) {
 		return ERR_INVALID_ARGUMENT;
@@ -330,7 +330,7 @@ static u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_co
 	return err_code;
 }
 
-static u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio, u32 timeout_ms) {
+u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio, u32 timeout_ms) {
 	
 	u8 err_code = NO_ERR;
 
@@ -449,6 +449,6 @@ static u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_
 	return err_code;
 }
 
-static u8 cmd_handler_get_error_code(COMMAND_INTERFACE* p_cmd) {
+u8 cmd_handler_get_error_code(COMMAND_INTERFACE* p_cmd) {
 	return p_cmd->answer.payload[1];
 }

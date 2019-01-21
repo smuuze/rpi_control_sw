@@ -49,7 +49,7 @@
 /*
  *
  */
-static u32 mstime_get_time(void) {
+u32 mstime_get_time(void) {
 	struct timespec time_spec;
 	
 	if (clock_gettime(CLOCK_MONOTONIC, &time_spec) == 0) {
@@ -62,48 +62,48 @@ static u32 mstime_get_time(void) {
 /*
  *
  */
-static u8 mstime_is_time_up(u32 reference_time, u32 interval_time) {	
+u8 mstime_is_time_up(u32 reference_time, u32 interval_time) {	
 	return (mstime_get_time() - reference_time) > interval_time ? 1 : 0;
 }
 
 /*!
  *
  */
-static void background_work(void) {
+void background_work(void) {
 	
 }
 
 /*!
  *
  */
-static u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, COM_INTERFACE* p_com_interface, MQTT_INTERFACE* p_mqtt_interface, COMMAND_INTERFACE* p_cmd_interface, GPIO_INTERFACE* p_gpio_interface, SCHEDULING_INTERFACE* p_scheduling_interface);
+u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, COM_INTERFACE* p_com_interface, MQTT_INTERFACE* p_mqtt_interface, COMMAND_INTERFACE* p_cmd_interface, GPIO_INTERFACE* p_gpio_interface, SCHEDULING_INTERFACE* p_scheduling_interface);
 
 /*!
  *
  */
-static void command_line_usage(void);
-
-
-/*!
- *
- */
-static void connectionLost_Callback(void *context, char* cause);
-
-/*!
- *
- */
-static int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTTClient_message* message);
-
-/*!
- *
- */
-static void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token);
+void command_line_usage(void);
 
 
 /*!
  *
  */
-static void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_from);
+void connectionLost_Callback(void *context, char* cause);
+
+/*!
+ *
+ */
+int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTTClient_message* message);
+
+/*!
+ *
+ */
+void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token);
+
+
+/*!
+ *
+ */
+void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_from);
 
 
 // -------- STATIC DATA -----------------------------------------------------------------
@@ -463,7 +463,7 @@ int main(int argc, char* argv[]) {
 
 // -------- COMMAND-LINE PARSING --------------------------------------------------------
 
-static u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, COM_INTERFACE* p_com_interface, MQTT_INTERFACE* p_mqtt_interface, COMMAND_INTERFACE* p_cmd_interface, GPIO_INTERFACE* p_gpio_interface, SCHEDULING_INTERFACE* p_scheduling_interface) {
+u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, COM_INTERFACE* p_com_interface, MQTT_INTERFACE* p_mqtt_interface, COMMAND_INTERFACE* p_cmd_interface, GPIO_INTERFACE* p_gpio_interface, SCHEDULING_INTERFACE* p_scheduling_interface) {
 	
 	// --- Initialize Communication-Interface
 	
@@ -644,7 +644,7 @@ void command_line_usage(void) {
 
 // -------- MQTT CALLBACKs --------------------------------------------------------------
 
-static void connectionLost_Callback(void *context, char* cause) {
+void connectionLost_Callback(void *context, char* cause) {
 
 	if (context == NULL) {
 		return;		
@@ -661,7 +661,7 @@ static void connectionLost_Callback(void *context, char* cause) {
 	ctx->connection_lost = 1;
 }
 
-static int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTTClient_message* message) {
+int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTTClient_message* message) {
 
 	if (context == NULL) {
 	
@@ -679,7 +679,7 @@ static int messageArrived_Callback(void* context, char* topicName, int topcLengt
 	return 1;
 }
 
-static void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token) {
+void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token) {
 
 	if (context == NULL) {
 		return;		

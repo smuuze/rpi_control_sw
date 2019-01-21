@@ -24,7 +24,7 @@
 /*
  *
  */
-static void hex_dump(const void *src, size_t length, size_t line_size, char *prefix) {
+void hex_dump(const void *src, size_t length, size_t line_size, char *prefix) {
 
 	//#if STRING_DEBUG_MSG != noDEBUG_MSG	
 	
@@ -73,7 +73,7 @@ static void hex_dump(const void *src, size_t length, size_t line_size, char *pre
 /*!
  * returns number of bytes read
  */
-static u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
+u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
 	
 	if (num_max_bytes == 0) {
 		return 0;
@@ -113,7 +113,7 @@ static u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
 	return num_bytes_read;
 }
 
-//static u8 write_line(FILE* file_handle, char* p_buffer_from, u16 num_max_bytes) {
+//u8 write_line(FILE* file_handle, char* p_buffer_from, u16 num_max_bytes) {
 //
 //	fputs(p_buffer_from, file_handle);
 //	return ERR_WRITE_FILE;
@@ -122,7 +122,7 @@ static u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
 /*
  *
  */
-static void split_string(char splitter, char* p_string_in, u16 string_in_len, char* p_string_out_1, u16 string_out_1_max_len, char* p_string_out_2, u16 string_out_2_max_len) {
+void split_string(char splitter, char* p_string_in, u16 string_in_len, char* p_string_out_1, u16 string_out_1_max_len, char* p_string_out_2, u16 string_out_2_max_len) {
 
 	u8 i = 0;
 	u8 j = 0;
@@ -163,7 +163,7 @@ static void split_string(char splitter, char* p_string_in, u16 string_in_len, ch
 /*
  *
  */
-static u16 string_length(char* p_str) {
+u16 string_length(char* p_str) {
 	
 	return strlen(p_str);
 	
@@ -176,7 +176,7 @@ static u16 string_length(char* p_str) {
 	*/
 }
 
-static u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array, u8 byte_array_max_len) {
+u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array, u8 byte_array_max_len) {
 	
 	if (hex_string_len < 2) {
 		return 0;
@@ -230,7 +230,7 @@ static u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byt
 	return j;
 }
 
-static u8 byte_array_string_to_hex_string(u8* byte_array, u8 byte_array_len, char* hex_string, u16 hex_string_max_len) {
+u8 byte_array_string_to_hex_string(u8* byte_array, u8 byte_array_len, char* hex_string, u16 hex_string_max_len) {
 	
 	if (hex_string_max_len < 2 || byte_array_len == 0) {
 		return 0;

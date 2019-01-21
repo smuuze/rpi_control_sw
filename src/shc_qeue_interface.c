@@ -23,13 +23,13 @@
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
-static void qeue_init(MSG_QEUE* p_qeue) {
+void qeue_init(MSG_QEUE* p_qeue) {
 	p_qeue->write_counter = 0;
 	p_qeue->read_counter = 0;
 	p_qeue->element_counter = 0;
 }
 
-static u8 qeue_enqeue(MSG_QEUE* p_qeue, MQTTClient_message* p_msg_from) {
+u8 qeue_enqeue(MSG_QEUE* p_qeue, MQTTClient_message* p_msg_from) {
 
 	if (p_qeue->element_counter == GENERAL_MAX_NUMBER_OF_MSG_IN_QEUE) {
 		return ERR_QEUE_FULL;
@@ -53,7 +53,7 @@ static u8 qeue_enqeue(MSG_QEUE* p_qeue, MQTTClient_message* p_msg_from) {
 	return NO_ERR;
 }
 
-static u8 qeue_deqeue(MSG_QEUE* p_qeue, STRING_BUFFER* p_msg_to) {
+u8 qeue_deqeue(MSG_QEUE* p_qeue, STRING_BUFFER* p_msg_to) {
 
 	if (p_qeue->element_counter == 0) {
 		return ERR_QEUE_EMPTY;
@@ -79,6 +79,6 @@ static u8 qeue_deqeue(MSG_QEUE* p_qeue, STRING_BUFFER* p_msg_to) {
 	return NO_ERR;
 }
 
-static u8 qeue_is_empty(MSG_QEUE* p_qeue) {
+u8 qeue_is_empty(MSG_QEUE* p_qeue) {
 	return p_qeue->element_counter == 0 ? 1 : 0;
 }
