@@ -11,6 +11,8 @@
 
 #include "shc_project_configuration.h"
 #include "shc_common_types.h"
+#include "shc_debug_interface.h"
+
 #include "shc_spi_interface.h"
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------

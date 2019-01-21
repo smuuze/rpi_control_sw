@@ -57,6 +57,12 @@ INC_PATH += -I $(APP_PATH)
 INC_PATH += -I $(TOOLCHAIN_INC_PATH)
 
 
+# --------- Library List
+
+LIBS +=
+LIBS += -L paho-mqtt3c
+LIBS += -L wiringPi
+
 # --------- Source File List
 
 CSRC += 
@@ -143,7 +149,7 @@ clean:
 
 %.o:
 	@echo Generating Object from: $<
-	$(ECHO) $(CC) $(INC_PATH) $(CSRC) $(CFLAGS) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(ECHO) $(CC) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
