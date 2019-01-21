@@ -2,6 +2,7 @@
 // -------- INCLUDES --------------------------------------------------------------------
 
 #include "shc_project_configuration.h"
+#include "shc_common_types.h"
 
 #include "shc_spi_interface.h"
 #include "shc_qeue_interface.h"
@@ -39,43 +40,6 @@
 
 // -------- TYPE-DEFINITIONS ------------------------------------------------------------
 
-/*!
- *
- */
-typedef enum {
-	SPI = 0x00,
-	I2C,
-	USART
-} COM_INTERFACE_TYPE;
-
-/*!
- *
- */
-typedef struct {
-	
-	COM_INTERFACE_TYPE type;
-	union {
-		SPI_INTERFACE spi;
-	} data;
-	
-} COM_INTERFACE;
-
-/*
- *
- */
-typedef struct {
-	u32 reference;
-	u32 interval;
-} SCHEDULING_TIME_VALUE;
-
-/*
- *
- */
-typedef struct {
-	SCHEDULING_TIME_VALUE event;
-	SCHEDULING_TIME_VALUE configuration;
-	SCHEDULING_TIME_VALUE report;
-} SCHEDULING_INTERFACE;
 
 
 

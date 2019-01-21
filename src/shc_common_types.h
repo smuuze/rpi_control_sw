@@ -52,5 +52,43 @@ typedef struct {
 	u8 payload[GENERAL_STRING_BUFFER_MAX_LENGTH]; 
 } STRING_BUFFER;
 
+/*!
+ *
+ */
+typedef enum {
+	SPI = 0x00,
+	I2C,
+	USART
+} COM_INTERFACE_TYPE;
+
+/*!
+ *
+ */
+typedef struct {
+	
+	COM_INTERFACE_TYPE type;
+	union {
+		SPI_INTERFACE spi;
+	} data;
+	
+} COM_INTERFACE;
+
+/*
+ *
+ */
+typedef struct {
+	u32 reference;
+	u32 interval;
+} SCHEDULING_TIME_VALUE;
+
+/*
+ *
+ */
+typedef struct {
+	SCHEDULING_TIME_VALUE event;
+	SCHEDULING_TIME_VALUE configuration;
+	SCHEDULING_TIME_VALUE report;
+} SCHEDULING_INTERFACE;
+
 
 #endif // _SHC_COMMON_TYPES_H_
