@@ -16,6 +16,8 @@
 
 #include "shc_qeue_interface.h"
 
+#include <MQTTClient.h>
+
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 
