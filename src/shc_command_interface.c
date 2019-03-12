@@ -346,7 +346,6 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 
 	while (gpio_is_event(p_gpio) == 0) {
 
-		background_work();
 		usleep(p_gpio->sample_timeout * 1000); // wait a little bit for answer to be complete
 
 		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
@@ -435,7 +434,6 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 
 	while (gpio_is_event(p_gpio) == 0) {
 
-		background_work();
 		usleep(p_gpio->sample_timeout * 1000); // wait a little bit for answer to be complete
 
 		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
