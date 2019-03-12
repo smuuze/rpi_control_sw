@@ -36,7 +36,7 @@ MSG_COMPILING		:= Compiling
 MSG_LINKING		:= Linking to
 MSG_PROG_LOCATION	:= Your programm can be found at
 MSG_LISTING		:= Generating Disassembly
-MSG_FINISH		:= ----- Make done -----
+MSG_FINISH		:= --------------- Make done ---------------
 
 
 # --------- Application Properties (Target / Working dir / ...)
@@ -67,6 +67,7 @@ LIBS += -l wiringPi
 # --------- Source File List
 
 CSRC += 
+CSRC += $(APP_PATH)/shc_timer.c
 CSRC +=	$(APP_PATH)/shc_command_interface.c
 CSRC +=	$(APP_PATH)/shc_common_string.c
 CSRC +=	$(APP_PATH)/shc_debug_interface.c
@@ -108,7 +109,7 @@ OBJ  			:= $(C_ELF_FILES)
 
 # --------- 
 
-all: $(TARGET).hex $(TARGET).lss
+all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o v$(VERSION)/$(TARGET)_v$(VERSION)
@@ -133,12 +134,14 @@ clean:
 	$(ECHO) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
 
 %.o:
-	@echo Generating Object from: $<
+	@echo Generating Object from: $@
 	$(ECHO) $(CC) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
+	@echo Going to buiild release version $(VERSION)
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
 	$(ECHO) $(MK) $@
+	@echo Creating Version directory: v$(VERSION)
 	$(ECHO) $(MK) v$(VERSION)
 
 install:
