@@ -1,0 +1,6 @@
+rpt_light_01=020501
+rpt_light_02=020502
+rpt_light_03=020503
+rpt_light_04=020504
+rpt_temperature=0107
+rpt_humidity=0108

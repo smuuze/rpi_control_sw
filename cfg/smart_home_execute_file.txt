@@ -1,0 +1,4 @@
+exe_stop=killall play
+exe_play=play -q Formation\ 2017-\ Originaltempo.mp3 &
+exe_radio_radio21= (killall play || echo 0) && play -q http://188.94.97.91/radio21.mp3 &
+exe_radio_m1fm_chillout= (killall play || echo 0) &&  play -q http://tuner.m1.fm/chillout.mp3 &
