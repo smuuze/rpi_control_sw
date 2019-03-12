@@ -108,9 +108,6 @@ OBJ  			:= $(C_ELF_FILES)
 
 # --------- 
 
-install:
-	$(ECHO) Performing install
-
 all: $(TARGET).hex $(TARGET).lss
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
@@ -143,6 +140,9 @@ $(OBJECT_DIRECTORY):
 	@echo Creating Build directory: $(OBJECT_DIRECTORY)
 	$(ECHO) $(MK) $@
 	$(ECHO) $(MK) v$(VERSION)
+
+install:
+	$(ECHO) Performing install
 	
 	
 	
