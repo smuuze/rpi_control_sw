@@ -317,7 +317,6 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 
 	while (gpio_is_event(p_gpio) == 0) {
 
-		background_work();
 		usleep(p_gpio->sample_timeout * 1000);
 
 		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {

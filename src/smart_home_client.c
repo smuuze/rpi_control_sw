@@ -17,6 +17,7 @@
 #include "shc_debug_interface.h"
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <linux/spi/spidev.h>
 
 #include <time.h>
