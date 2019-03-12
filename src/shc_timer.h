@@ -9,6 +9,9 @@
 #define SHC_TIMER_H_
 
 
+#include "shc_common_types.h"
+
+
 /*!
  *
  * @return
