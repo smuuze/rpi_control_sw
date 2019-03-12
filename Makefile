@@ -147,5 +147,5 @@ $(OBJECT_DIRECTORY):
 install:
 	$(ECHO) Performing install
 	
-	
-	
+git_update:
+	$(ECHO) git pull
