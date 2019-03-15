@@ -24,7 +24,7 @@ OBJCOPY			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)objcopy'
 SIZE			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)size'
 
 RM			:= rm
-MK			:= mkdir
+MK			:= mkdir -p
 CP			:= cp
 MAKE_EXE		:= chmod ug=+rwx
 ECHO			:= echo
@@ -46,6 +46,7 @@ MSG_FINISH		:= --------------- Make done ---------------
 OBJECT_DIRECTORY	:= obj
 OUTPUT_DIRECTORY	:= program
 CONFIG_DIRECTORY	:= cfg
+DEBUG_DIRECTORY		:= test
 APP_PATH		:= src
 FORMAT			:= ihex
 FREQUENCY		:= 10000000UL
@@ -132,6 +133,10 @@ all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
 	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
+	
+debug: $(DEBUG_DIRECTORY)  $(TARGET).hex $(TARGET).lss	
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
+	
 clean:
 	$(VERBOSE) $(ECHO) Performing clean
 	$(VERBOSE) $(ECHO) - Removing object directory from filesystem
@@ -144,22 +149,28 @@ clean:
 
 %.hex: %.o
 	$(VERBOSE) $(ECHO) - Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
-	$(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
+	$(VERBOSE) $(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
 	$(VERBOSE) $(SIZE) $(OBJECT_DIRECTORY)/$(TARGET).o 
+
+%.o:
+	$(VERBOSE) $(ECHO) - Generating Object from: $@
+	$(VERBOSE) $(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 %.lss:
 	$(VERBOSE) $(ECHO) $(MSG_LISTING)
 	$(VERBOSE) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
-
-%.o:
-	$(VERBOSE) $(ECHO) - Generating Object from: $@
-	$(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
 	$(VERBOSE) $(ECHO) - Creating Build directory: $(OBJECT_DIRECTORY)
 	$(VERBOSE) $(MK) $@
 	$(VERBOSE) $(ECHO) - Creating Version directory: v$(VERSION)
 	$(VERBOSE) $(MK) v$(VERSION)
+	
+$(DEBUG_DIRECTORY) :
+	$(VERBOSE) $(ECHO) Performing debug - Version: $(VERSION)
+	$(VERBOSE) $(MK) $(OBJECT_DIRECTORY)
+	$(VERBOSE) $(ECHO) - Creating Debug directory: $(DEBUG_DIRECTORY)/v$(VERSION)
+	$(VERBOSE) $(MK) $(DEBUG_DIRECTORY)/v$(VERSION)
 	
 install:
 	$(VERBOSE) $(ECHO) Performing install
