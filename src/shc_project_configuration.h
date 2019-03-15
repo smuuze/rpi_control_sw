@@ -11,9 +11,13 @@
 #define _SHC_PROJECT_CONFIGURATION_H_
 
 // -------- DEFINITIONS -----------------------------------------------------------------
+#ifndef VERSION_MAJOR
+#define VERSION_MAJOR				1
+#endif
 
-#define V_MAJOR					3
-#define V_MINOR					0
+#ifndef VERSION_MINOR
+#define VERSION_MINOR				0
+#endif
 
 #define GENERAL_STRING_BUFFER_MAX_LENGTH	100
 #define GENERAL_MAX_NUMBER_OF_MSG_IN_QEUE	10

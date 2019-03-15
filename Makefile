@@ -49,7 +49,10 @@ CONFIG_DIRECTORY	:= cfg
 APP_PATH		:= src
 FORMAT			:= ihex
 FREQUENCY		:= 10000000UL
-VERSION			:= 1.0
+
+VERSION_MAJOR		:= 2
+VERSION_MINOR		:= 0
+VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 TARGET			:= SmartHomeClient
 TARGET_DAEMON		:= shcd
@@ -85,6 +88,12 @@ CSRC +=	$(APP_PATH)/shc_spi_interface.c
 CSRC +=	$(APP_PATH)/smart_home_client.c
 
 
+# --------- Defines
+
+DEFS =
+DEFS += -DVERSION_MAJOR=$(VERSION_MAJOR)
+DEFS += -DVERSION_MINOR=$(VERSION_MINOR)
+
 # --------- Compiler Flags
 
 CFLAGS +=
@@ -115,6 +124,7 @@ OBJ  			:= $(C_ELF_FILES)
 # --------- 
 
 all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
+	$(VERBOSE) $(ECHO) Performing make - Version: $(VERSION)
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o v$(VERSION)/$(TARGET)_v$(VERSION)
@@ -123,14 +133,17 @@ all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
 clean:
-	$(VERBOSE) $(ECHO) Cleaning project
+	$(VERBOSE) $(ECHO) Performing clean
+	$(VERBOSE) $(ECHO) - Removing object directory from filesystem
 	$(VERBOSE) $(RM) $(RM_FLAGS) $(OBJECT_DIRECTORY)
+	$(VERBOSE) $(ECHO) - Removing release directory from filesystem
 	$(VERBOSE) $(RM) $(RM_FLAGS) v$(VERSION)
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
 # --------- 
 
 %.hex: %.o
-	$(VERBOSE) $(ECHO) Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
+	$(VERBOSE) $(ECHO) - Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
 	$(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
 	$(VERBOSE) $(SIZE) $(OBJECT_DIRECTORY)/$(TARGET).o 
 	
@@ -139,40 +152,54 @@ clean:
 	$(VERBOSE) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
 
 %.o:
-	$(VERBOSE) $(ECHO) Generating Object from: $@
-	$(VERBOSE) $(CC) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(VERBOSE) $(ECHO) - Generating Object from: $@
+	$(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
-	$(VERBOSE) $(ECHO) Going to buiild release version $(VERSION)
-	$(VERBOSE) $(ECHO) Creating Build directory: $(OBJECT_DIRECTORY)
+	$(VERBOSE) $(ECHO) - Creating Build directory: $(OBJECT_DIRECTORY)
 	$(VERBOSE) $(MK) $@
-	$(VERBOSE) $(ECHO) Creating Version directory: v$(VERSION)
+	$(VERBOSE) $(ECHO) - Creating Version directory: v$(VERSION)
 	$(VERBOSE) $(MK) v$(VERSION)
 	
 install:
 	$(VERBOSE) $(ECHO) Performing install
+	$(VERBOSE) $(ECHO) - Copy service to target: /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(CP) service/shc_service /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(MAKE_EXE) /etc/init.d/$(TARGET_SERVICE)
+	$(VERBOSE) $(ECHO) - Copy daemon to target: /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
-	#$(VERBOSE) update-rc.d $(TARGET_SERVICE) enable
+	$(VERBOSE) $(ECHO) - Register service with inid.d
 	$(VERBOSE) update-rc.d $(TARGET_SERVICE) defaults
+	$(VERBOSE) update-rc.d $(TARGET_SERVICE) enable
+	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
 uninstall:
 	$(VERBOSE) $(ECHO) Performing uninstall
+	$(VERBOSE) $(ECHO) - Sopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+	$(VERBOSE) $(ECHO) - Disabling service
 	$(VERBOSE) update-rc.d $(TARGET_SERVICE) disable
+	$(VERBOSE) $(ECHO) - Removing service from init.d
 	$(VERBOSE) update-rc.d $(TARGET_SERVICE) remove
+	$(VERBOSE) $(ECHO) - Removing service from filesystem
 	$(VERBOSE) $(RM) /etc/init.d/$(TARGET_SERVICE)
+	$(VERBOSE) $(ECHO) - Removing Daemon from filesystem
 	$(VERBOSE) $(RM) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
 update:
 	$(VERBOSE) $(ECHO) Performing update
+	$(VERBOSE) $(ECHO) - Sopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+	$(VERBOSE) $(ECHO) - Updateing daemon
 	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
 git_update:
 	$(VERBOSE) git pull

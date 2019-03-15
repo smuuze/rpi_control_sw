@@ -72,7 +72,7 @@ MSG_QEUE myCommandQeue;
 
 int main(int argc, char* argv[]) {
 
-	MAIN_DEBUG_MSG("Welcome to the SmartHomeClient v%d.%d", V_MAJOR, V_MINOR);
+	MAIN_DEBUG_MSG("Welcome to the SmartHomeClient v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 	qeue_init(&myCommandQeue);
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 		return err_code;
 	}
 
-	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting SmartHomeClient Deamon v%d.%d", V_MAJOR, V_MINOR);
+	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting SmartHomeClient Deamon v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 	MAIN_DEBUG_MSG("\n");
 	MAIN_DEBUG_MSG("---- Initialize GPIO-Interface---- \n");
