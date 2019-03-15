@@ -23,12 +23,14 @@ OBJDUMP			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)objdump'
 OBJCOPY			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)objcopy'
 SIZE			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)size'
 
-RM			:= rm -rf
+RM			:= rm
 MK			:= mkdir
 CP			:= cp
 MAKE_EXE		:= chmod ug=+rwx
+ECHO			:= echo
 
-ECHO 			:= @
+RM_FLAGS		:= -rf
+VERBOSE 		:= @
 
 # --------- Message Output
 
@@ -43,12 +45,15 @@ MSG_FINISH		:= --------------- Make done ---------------
 
 OBJECT_DIRECTORY	:= obj
 OUTPUT_DIRECTORY	:= program
+CONFIG_DIRECTORY	:= cfg
 APP_PATH		:= src
 FORMAT			:= ihex
 FREQUENCY		:= 10000000UL
 VERSION			:= 1.0
 
 TARGET			:= SmartHomeClient
+TARGET_DAEMON		:= shcd
+TARGET_SERVICE		:= shc_service
 
 
 # --------- Include Path
@@ -110,42 +115,64 @@ OBJ  			:= $(C_ELF_FILES)
 # --------- 
 
 all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
-	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
-	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
-	$(ECHO) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o v$(VERSION)/$(TARGET)_v$(VERSION)
-	$(ECHO) $(MAKE_EXE) v$(VERSION)/$(TARGET)_v$(VERSION)
-	@echo $(MSG_PROG_LOCATION) v$(VERSION)/$(TARGET)_v$(VERSION).hex
-	@echo $(MSG_FINISH)
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o v$(VERSION)/$(TARGET)_v$(VERSION)
+	$(VERBOSE) $(MAKE_EXE) v$(VERSION)/$(TARGET)_v$(VERSION)
+	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) v$(VERSION)/$(TARGET)_v$(VERSION).hex
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
 clean:
-	@echo Cleaning project
-	$(ECHO) $(RM) $(OBJECT_DIRECTORY)
-	$(ECHO) $(RM) v$(VERSION)
+	$(VERBOSE) $(ECHO) Cleaning project
+	$(VERBOSE) $(RM) $(RM_FLAGS) $(OBJECT_DIRECTORY)
+	$(VERBOSE) $(RM) $(RM_FLAGS) v$(VERSION)
 
 # --------- 
 
 %.hex: %.o
-	@echo Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
+	$(VERBOSE) $(ECHO) Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
 	$(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
-	$(ECHO) $(SIZE) $(OBJECT_DIRECTORY)/$(TARGET).o 
+	$(VERBOSE) $(SIZE) $(OBJECT_DIRECTORY)/$(TARGET).o 
 	
 %.lss:
-	@echo $(MSG_LISTING)
-	$(ECHO) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
+	$(VERBOSE) $(ECHO) $(MSG_LISTING)
+	$(VERBOSE) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
 
 %.o:
-	@echo Generating Object from: $@
-	$(ECHO) $(CC) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+	$(VERBOSE) $(ECHO) Generating Object from: $@
+	$(VERBOSE) $(CC) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
 	
 $(OBJECT_DIRECTORY):
-	@echo Going to buiild release version $(VERSION)
-	@echo Creating Build directory: $(OBJECT_DIRECTORY)
-	$(ECHO) $(MK) $@
-	@echo Creating Version directory: v$(VERSION)
-	$(ECHO) $(MK) v$(VERSION)
-
+	$(VERBOSE) $(ECHO) Going to buiild release version $(VERSION)
+	$(VERBOSE) $(ECHO) Creating Build directory: $(OBJECT_DIRECTORY)
+	$(VERBOSE) $(MK) $@
+	$(VERBOSE) $(ECHO) Creating Version directory: v$(VERSION)
+	$(VERBOSE) $(MK) v$(VERSION)
+	
 install:
-	$(ECHO) Performing install
+	$(VERBOSE) $(ECHO) Performing install
+	$(VERBOSE) $(CP) service/shc_service /etc/init.d/$(TARGET_SERVICE)
+	$(VERBOSE) $(MAKE_EXE) /etc/init.d/$(TARGET_SERVICE)
+	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
+	#$(VERBOSE) update-rc.d $(TARGET_SERVICE) enable
+	$(VERBOSE) update-rc.d $(TARGET_SERVICE) defaults
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
+	
+uninstall:
+	$(VERBOSE) $(ECHO) Performing uninstall
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+	$(VERBOSE) update-rc.d $(TARGET_SERVICE) disable
+	$(VERBOSE) update-rc.d $(TARGET_SERVICE) remove
+	$(VERBOSE) $(RM) /etc/init.d/$(TARGET_SERVICE)
+	$(VERBOSE) $(RM) /usr/sbin/$(TARGET_DAEMON)
+	
+update:
+	$(VERBOSE) $(ECHO) Performing update
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	
 git_update:
-	$(ECHO) git pull
+	$(VERBOSE) git pull
