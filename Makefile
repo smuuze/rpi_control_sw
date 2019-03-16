@@ -132,11 +132,10 @@ all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
 	$(VERBOSE) $(MAKE_EXE) v$(VERSION)/$(TARGET)_v$(VERSION)
 	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) v$(VERSION)/$(TARGET)_v$(VERSION).hex
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
-	
-	
+
 debug: $(DEBUG_DIRECTORY)  $(TARGET).hex $(TARGET).lss	
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
-	
+
 clean:
 	$(VERBOSE) $(ECHO) Performing clean
 	$(VERBOSE) $(ECHO) - Removing object directory from filesystem
@@ -155,25 +154,24 @@ clean:
 %.o:
 	$(VERBOSE) $(ECHO) - Generating Object from: $@
 	$(VERBOSE) $(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
-	
+
 %.lss:
 	$(VERBOSE) $(ECHO) $(MSG_LISTING)
 	$(VERBOSE) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
-	
+
 $(OBJECT_DIRECTORY):
 	$(VERBOSE) $(ECHO) - Creating Build directory: $(OBJECT_DIRECTORY)
 	$(VERBOSE) $(MK) $@
 	$(VERBOSE) $(ECHO) - Creating Version directory: v$(VERSION)
 	$(VERBOSE) $(MK) v$(VERSION)
-	
+
 $(DEBUG_DIRECTORY) :
 	$(VERBOSE) $(ECHO) Performing debug - Version: $(VERSION)
 	$(VERBOSE) $(MK) $(OBJECT_DIRECTORY)
 	$(VERBOSE) $(ECHO) - Creating Debug directory: $(DEBUG_DIRECTORY)/v$(VERSION)
 	$(VERBOSE) $(MK) $(DEBUG_DIRECTORY)/v$(VERSION)
-	
-install:
-	$(VERBOSE) $(ECHO) Performing install
+
+install: create_user
 	$(VERBOSE) $(ECHO) - Copy service to target: /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(CP) service/shc_service /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(MAKE_EXE) /etc/init.d/$(TARGET_SERVICE)
@@ -186,9 +184,8 @@ install:
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
-	
+
 uninstall:
-	$(VERBOSE) $(ECHO) Performing uninstall
 	$(VERBOSE) $(ECHO) - Sopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
 	$(VERBOSE) $(ECHO) - Disabling service
@@ -200,9 +197,8 @@ uninstall:
 	$(VERBOSE) $(ECHO) - Removing Daemon from filesystem
 	$(VERBOSE) $(RM) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
-	
+
 update:
-	$(VERBOSE) $(ECHO) Performing update
 	$(VERBOSE) $(ECHO) - Sopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
 	$(VERBOSE) $(ECHO) - Updateing daemon
@@ -211,6 +207,10 @@ update:
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
-	
+
+create_user:
+	$(VERBOSE) $(ECHO) - Creating SHC user
+	$(VERBOSE) useradd -M -s /bin/false -G gpio,audio,spi shc
+
 git_update:
 	$(VERBOSE) git pull
