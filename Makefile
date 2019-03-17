@@ -37,23 +37,22 @@ VERBOSE 		:= @
 MSG_COMPILING		:= Compiling
 MSG_LINKING		:= Linking to
 MSG_PROG_LOCATION	:= Your programm can be found at
-MSG_LISTING		:= Generating Disassembly
+MSG_LISTING		:= - Generating Disassembly
 MSG_FINISH		:= --------------- Make done ---------------
 
 
 # --------- Application Properties (Target / Working dir / ...)
 
-OBJECT_DIRECTORY	:= obj
-OUTPUT_DIRECTORY	:= program
-CONFIG_DIRECTORY	:= cfg
-DEBUG_DIRECTORY		:= test
-APP_PATH		:= src
-FORMAT			:= ihex
-FREQUENCY		:= 10000000UL
-
 VERSION_MAJOR		:= 2
 VERSION_MINOR		:= 0
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
+
+OBJECT_DIRECTORY	:= obj
+OUTPUT_DIRECTORY	:= program
+CONFIG_DIRECTORY	:= cfg
+RELEASE_DIRECTORY	:= release/v$(VERSION)
+APP_PATH		:= src
+FORMAT			:= ihex
 
 TARGET			:= SmartHomeClient
 TARGET_DAEMON		:= shcd
@@ -62,20 +61,20 @@ TARGET_SERVICE		:= shc_service
 
 # --------- Include Path
 
-INC_PATH +=
+INC_PATH =
 INC_PATH += -I $(APP_PATH)
 INC_PATH += -I $(TOOLCHAIN_INC_PATH)
 
 
 # --------- Library List
 
-LIBS +=
+LIBS =
 LIBS += -l paho-mqtt3c
 LIBS += -l wiringPi
 
 # --------- Source File List
 
-CSRC += 
+CSRC = 
 CSRC += $(APP_PATH)/shc_timer.c
 CSRC +=	$(APP_PATH)/shc_command_interface.c
 CSRC +=	$(APP_PATH)/shc_common_string.c
@@ -95,6 +94,8 @@ DEFS =
 DEFS += -DVERSION_MAJOR=$(VERSION_MAJOR)
 DEFS += -DVERSION_MINOR=$(VERSION_MINOR)
 
+DEBUG_ENABLED = -DDEBUG_ENABLED
+
 # --------- Compiler Flags
 
 CFLAGS +=
@@ -113,7 +114,7 @@ LDFLAGS += -Wl,-Map=$(OBJECT_DIRECTORY)/$(TARGET).map,--cref
 LDFLAGS += -L$(TOOLCHAIN_LIB_PATH)
 
 
-# --------- Make Targets 
+# --------- Make Targets
 
 C_DEPENDENCY_FILES 	:= $(CSRC:.c=.o)
 C_ELF_FILES		:= $(CSRC:.c=.elf)
@@ -124,54 +125,69 @@ OBJ  			:= $(C_ELF_FILES)
 
 # --------- 
 
-all: $(OBJECT_DIRECTORY) $(TARGET).hex $(TARGET).lss
-	$(VERBOSE) $(ECHO) Performing make - Version: $(VERSION)
-	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex v$(VERSION)/$(TARGET)_v$(VERSION).hex
-	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss v$(VERSION)/$(TARGET)_v$(VERSION).lss
-	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o v$(VERSION)/$(TARGET)_v$(VERSION)
-	$(VERBOSE) $(MAKE_EXE) v$(VERSION)/$(TARGET)_v$(VERSION)
-	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) v$(VERSION)/$(TARGET)_v$(VERSION).hex
+all: obj_dir release_obj lss_file hex_file
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(TARGET).hex
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(TARGET).lss
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o $(TARGET)
+	$(VERBOSE) $(MAKE_EXE) $(TARGET)
+	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) $(TARGET)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
-debug: $(DEBUG_DIRECTORY)  $(TARGET).hex $(TARGET).lss	
+release: obj_dir release_obj release_dir lss_file hex_file
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(RELEASE_DIRECTORY)/$(TARGET).hex
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(RELEASE_DIRECTORY)/$(TARGET).lss
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o $(RELEASE_DIRECTORY)/$(TARGET)
+	$(VERBOSE) $(MAKE_EXE) $(RELEASE_DIRECTORY)/$(TARGET)
+	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) $(RELEASE_DIRECTORY)/$(TARGET)
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
+
+debug: obj_dir debug_obj lss_file hex_file
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(TARGET).hex
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(TARGET).lss
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o $(TARGET)
+	$(VERBOSE) $(MAKE_EXE) $(TARGET)
+	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) $(TARGET)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
 clean:
-	$(VERBOSE) $(ECHO) Performing clean
 	$(VERBOSE) $(ECHO) - Removing object directory from filesystem
 	$(VERBOSE) $(RM) $(RM_FLAGS) $(OBJECT_DIRECTORY)
-	$(VERBOSE) $(ECHO) - Removing release directory from filesystem
-	$(VERBOSE) $(RM) $(RM_FLAGS) v$(VERSION)
+	$(VERBOSE) $(ECHO) - Removing generated program-files
+	$(VERBOSE) $(RM) $(RM_FLAGS) $(TARGET).hex
+	$(VERBOSE) $(RM) $(RM_FLAGS) $(TARGET).lss
+	$(VERBOSE) $(RM) $(RM_FLAGS) $(TARGET)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
 # --------- 
 
-%.hex: %.o
+release_obj:
+	$(VERBOSE) $(ECHO) - Generating Relase-Object - Version: $(VERSION)
+	$(VERBOSE) $(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) -o $(OBJECT_DIRECTORY)/$(TARGET).o
+
+debug_obj:
+	$(VERBOSE) $(ECHO) - Generating Debug-Object - Version: $(VERSION)
+	$(VERBOSE) $(CC) $(DEFS) $(DEBUG_ENABLED) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) -o $(OBJECT_DIRECTORY)/$(TARGET).o
+
+hex_file:
 	$(VERBOSE) $(ECHO) - Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
-	$(VERBOSE) $(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$< $(OBJECT_DIRECTORY)/$@
+	$(VERBOSE) $(OBJCOPY) -O $(FORMAT) $(OBJECT_DIRECTORY)/$(TARGET).o $(OBJECT_DIRECTORY)/$(TARGET).hex
 	$(VERBOSE) $(SIZE) $(OBJECT_DIRECTORY)/$(TARGET).o 
 
-%.o:
-	$(VERBOSE) $(ECHO) - Generating Object from: $@
-	$(VERBOSE) $(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
-
-%.lss:
+lss_file:
 	$(VERBOSE) $(ECHO) $(MSG_LISTING)
 	$(VERBOSE) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
 
-$(OBJECT_DIRECTORY):
-	$(VERBOSE) $(ECHO) - Creating Build directory: $(OBJECT_DIRECTORY)
-	$(VERBOSE) $(MK) $@
-	$(VERBOSE) $(ECHO) - Creating Version directory: v$(VERSION)
-	$(VERBOSE) $(MK) v$(VERSION)
-
-$(DEBUG_DIRECTORY) :
-	$(VERBOSE) $(ECHO) Performing debug - Version: $(VERSION)
+obj_dir:
+	$(VERBOSE) $(ECHO) - Creating Object directory: $(OBJECT_DIRECTORY)
 	$(VERBOSE) $(MK) $(OBJECT_DIRECTORY)
-	$(VERBOSE) $(ECHO) - Creating Debug directory: $(DEBUG_DIRECTORY)/v$(VERSION)
-	$(VERBOSE) $(MK) $(DEBUG_DIRECTORY)/v$(VERSION)
 
-install: create_user
+release_dir:
+	$(VERBOSE) $(ECHO) - Creating Release directory: $(RELEASE_DIRECTORY)
+	$(VERBOSE) $(MK) $(RELEASE_DIRECTORY)
+
+# --------- 
+
+install:
 	$(VERBOSE) $(ECHO) - Copy service to target: /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(CP) service/shc_service /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(MAKE_EXE) /etc/init.d/$(TARGET_SERVICE)
@@ -186,7 +202,7 @@ install: create_user
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
 uninstall:
-	$(VERBOSE) $(ECHO) - Sopping service
+	$(VERBOSE) $(ECHO) - Stopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
 	$(VERBOSE) $(ECHO) - Disabling service
 	$(VERBOSE) update-rc.d $(TARGET_SERVICE) disable
@@ -199,7 +215,7 @@ uninstall:
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
 update:
-	$(VERBOSE) $(ECHO) - Sopping service
+	$(VERBOSE) $(ECHO) - Stopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
 	$(VERBOSE) $(ECHO) - Updateing daemon
 	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)

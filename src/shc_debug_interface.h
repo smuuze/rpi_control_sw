@@ -20,7 +20,14 @@
 #define ERR_LEVEL_FATAL				3
 
 //#define DEBUG_MSG(...)
+#ifdef DEBUG_ENABLED
 #define DEBUG_MSG(...)				printf(__VA_ARGS__)
+#else
+#define DEBUG_MSG(...)
+#endif
+
+#define noDEBUG_MSG(...)
+
 #define LOG_MSG(level, p_file, ...)		{								\
 							STRING_BUFFER log_msg;					\
 							sprintf((char*)log_msg.payload, __VA_ARGS__);		\
@@ -28,17 +35,10 @@
 							log_message(p_file, level, &log_msg);			\
 						}
 
-#define noDEBUG_MSG(...)
-
-#define SPI_DEBUG_MSG				DEBUG_MSG
-#define MQTT_DEBUG_MSG				noDEBUG_MSG
-#define COMMAND_DEBUG_MSG			DEBUG_MSG
 #define EVENT_DEBUG_MSG				noDEBUG_MSG
 #define REPORT_DEBUG_MSG			noDEBUG_MSG
-#define QEUE_DEBUG_MSG				noDEBUG_MSG
 #define STRING_DEBUG_MSG			DEBUG_MSG
 #define MAIN_DEBUG_MSG				DEBUG_MSG
-#define GPIO_DEBUG_MSG				noDEBUG_MSG
 #define LOG_DEBUG_MSG				noDEBUG_MSG
 #define CFG_DEBUG_MSG				noDEBUG_MSG
 

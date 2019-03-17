@@ -20,6 +20,8 @@
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 
+#define MQTT_DEBUG_MSG				noDEBUG_MSG
+
 // ---- STATIC DATA -------------------------------------------------------------
 
 extern MSG_QEUE myCommandQeue;
