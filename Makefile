@@ -23,10 +23,21 @@ OBJDUMP			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)objdump'
 OBJCOPY			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)objcopy'
 SIZE			:= '$(TOOLCHAIN_BIN_PATH)/$(CROSS_PREFIX)size'
 
+AVR_DUDE		:= '$(TOOLCHAIN_BIN_PATH)/avrdude'
+AVR_DUDE_MCU_NAME	:= m1284p
+AVR_DUDE_PORT		:= /dev/spidev0.0
+AVR_DUDE_BAUDRATE	:= 9600
+AVR_DUDE_PROGRAMMER	:= linuxspi
+AVR_DUDE_UPDATE_PATH	:= fw_update
+AVR_DUDE_UPDATE_FILE	:= RPI_Hat_ATMega1284P.hex
+AVR_DUDE_UPDATE_FORMAT	:= i
+
+
 RM			:= rm
 MK			:= mkdir -p
 CP			:= cp
 MAKE_EXE		:= chmod ug=+rwx
+MAKE_FILE_RIGHTS	:= chmod ug=rw
 ECHO			:= echo
 
 RM_FLAGS		:= -rf
@@ -44,7 +55,7 @@ MSG_FINISH		:= --------------- Make done ---------------
 # --------- Application Properties (Target / Working dir / ...)
 
 VERSION_MAJOR		:= 2
-VERSION_MINOR		:= 0
+VERSION_MINOR		:= 5
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 OBJECT_DIRECTORY	:= obj
@@ -224,9 +235,24 @@ update:
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
+# --------- 
+
+fw_update:
+	$(VERBOSE) $(ECHO) - Stopping service
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+	$(VERBOSE) $(AVR_DUDE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) -P $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U flash:w:"$(AVR_DUDE_UPDATE_PATH)/$(AVR_DUDE_UPDATE_FILE)":$(AVR_DUDE_UPDATE_FORMAT)
+	$(VERBOSE) $(ECHO) - Starting service
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
+
+# --------- 
+
 create_user:
 	$(VERBOSE) $(ECHO) - Creating SHC user
 	$(VERBOSE) useradd -M -s /bin/false -G gpio,audio,spi shc
 
 git_update:
 	$(VERBOSE) git pull
+	$(VERBOSE) $(MAKE_FILE_RIGHTS) $(APP_PATH)/*.c
+	$(VERBOSE) $(MAKE_FILE_RIGHTS) $(APP_PATH)/*.h
+	$(VERBOSE) $(MAKE_FILE_RIGHTS) Makefile
