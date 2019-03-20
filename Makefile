@@ -212,9 +212,7 @@ install:
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
-uninstall:
-	$(VERBOSE) $(ECHO) - Stopping service
-	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+uninstall: stop_service
 	$(VERBOSE) $(ECHO) - Disabling service
 	$(VERBOSE) update-rc.d $(TARGET_SERVICE) disable
 	$(VERBOSE) $(ECHO) - Removing service from init.d
@@ -225,9 +223,7 @@ uninstall:
 	$(VERBOSE) $(RM) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
-update:
-	$(VERBOSE) $(ECHO) - Stopping service
-	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+update: stop_service
 	$(VERBOSE) $(ECHO) - Updateing daemon
 	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
@@ -235,11 +231,17 @@ update:
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
-# --------- 
-
-fw_update:
+stop_service:
 	$(VERBOSE) $(ECHO) - Stopping service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) stop
+
+start_service:
+	$(VERBOSE) $(ECHO) - Starting service
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
+
+# --------- 
+
+fw_update: stop_service
 	$(VERBOSE) $(AVR_DUDE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) -P $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U flash:w:"$(AVR_DUDE_UPDATE_PATH)/$(AVR_DUDE_UPDATE_FILE)":$(AVR_DUDE_UPDATE_FORMAT)
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start

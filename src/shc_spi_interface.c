@@ -13,6 +13,7 @@
 #include "shc_common_types.h"
 #include "shc_common_string.h"
 #include "shc_debug_interface.h"
+#include "shc_gpio_interface.h"
 
 #include "shc_spi_interface.h"
 
@@ -23,10 +24,22 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define SPI_DEBUG_MSG				noDEBUG_MSG
+#define SPI_DEBUG_MSG				DEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 
+static GPIO_INTERFACE ce_pin = {
+	GPIO_CE0_PIN_NUM, //u8 pin_num ;
+	0,  // u8 is_initialized;
+	0, // u8 is_input;
+	GPIO_OFF, //u8 is_high_level;
+	1, //u8 match_event_level;
+	0, //u8 event_rised;
+	0, //u32 sample_time_reference;
+	5, // u32 sample_timeout;
+	0, //u32 event_ref_time;
+	0, //u32 event_timeout;
+};
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
@@ -74,7 +87,15 @@ void spi_init(SPI_INTERFACE* p_spi_handle) {
 	if (err_code) {
 		SPI_DEBUG_MSG("Can't get max speed hz");
 		return;
-	}		
+	}	
+	
+	err_code = gpio_initialize(&ce_pin);
+	if (err_code != NO_ERR ) {
+		SPI_DEBUG_MSG("spi_init()- Initializing CE-Pin has FAILED !!! --- (error-code = %d)", err_code);
+		return;
+	}
+	
+	gpio_set_state(&ce_pin, GPIO_ON);
 }
 
 void spi_deinit(SPI_INTERFACE* p_spi_handle) {
@@ -129,7 +150,9 @@ u8 spi_transfer(SPI_INTERFACE* p_spi_handle, size_t num_bytes, const u8* p_buffe
 	}	
 	*/
 	
+	gpio_set_state(&ce_pin, GPIO_ON);
 	u8 err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_MESSAGE(1), &spi_tr);
+	gpio_set_state(&ce_pin, GPIO_OFF);
 
 	hex_dump((const void*)tmp_tx_buffer, num_bytes, 32, "TX");
 	hex_dump((const void*)tmp_rx_buffer, num_bytes, 32, "RX");
