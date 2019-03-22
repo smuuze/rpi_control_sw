@@ -30,10 +30,13 @@
 
 // -------- DEBUGGING -------------------------------------------------------------------
 
+#define MAIN_DEBUG_MSG					DEBUG_MSG
+#define MAIN_CFG_DEBUG_MSG				DEBUG_MSG
+
 // -------- Command-Code ----------------------------------------------------------------
 
-#define CMD_VERSION_STR				"version"
-#define CMD_VERSION_LEN				7
+#define CMD_VERSION_STR					"version"
+#define CMD_VERSION_LEN					7
 
 
 // -------- TYPE-DEFINITIONS ------------------------------------------------------------
@@ -42,6 +45,8 @@
 
 
 // -------- STATIC FUNCTION PROTOTYPES --------------------------------------------------
+
+static void reset_device(void);
 
 /*!
  *
@@ -67,6 +72,33 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
  */
 MSG_QEUE myCommandQeue;
 
+static MQTT_INTERFACE myMqttInterface;
+
+/*!
+ *
+ */
+static COM_INTERFACE myComInterface;
+
+/*!
+ *
+ */
+static COMMAND_INTERFACE myCmdInterface;
+
+/*!
+ *
+ */
+static CFG_INTERFACE myCfgInterface;
+
+/*!
+ *
+ */
+static GPIO_INTERFACE myGpioInterface;
+
+/*!
+ *
+ */
+static SCHEDULING_INTERFACE mySchedulingInterface;
+
 
 // -------- MAIN ------------------------------------------------------------------------
 
@@ -75,13 +107,6 @@ int main(int argc, char* argv[]) {
 	MAIN_DEBUG_MSG("Welcome to the SmartHomeClient v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 	qeue_init(&myCommandQeue);
-
-	MQTT_INTERFACE myMqttInterface;
-	COM_INTERFACE myComInterface;
-	COMMAND_INTERFACE myCmdInterface;
-	CFG_INTERFACE myCfgInterface;
-	GPIO_INTERFACE myGpioInterface;
-	SCHEDULING_INTERFACE mySchedulingInterface;
 
 	#if DEBUG_DISABLE_REPORT_PROCESSING == 1
 	MAIN_DEBUG_MSG("RPORT PROCESSING IS DISABLED !!!\n");
@@ -108,6 +133,8 @@ int main(int argc, char* argv[]) {
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize GPIO-Interface");
 
 	gpio_initialize(&myGpioInterface);
+	
+	reset_device();
 
 	GPIO_INTERFACE is_busy_pin = {
 		GPIO_IS_BUSY_PIN_NUM, //u8 pin_num ;
@@ -214,6 +241,7 @@ int main(int argc, char* argv[]) {
 				}
 
 				if (myCmdInterface.message.length == MQTT_EXIT_STRING_LEN && memcmp((const void*)myCmdInterface.message.payload, MQTT_EXIT_STRING, MQTT_EXIT_STRING_LEN) == 0) {
+					MAIN_DEBUG_MSG("Exit Message received - will quit program");
 					LOG_MSG(ERR_LEVEL_INFO, &myCfgInterface.log_file, "Exit Message received - will quit program");
 					break;
 				}
@@ -263,10 +291,11 @@ int main(int argc, char* argv[]) {
 				&& mstime_is_time_up(mySchedulingInterface.report.reference, mySchedulingInterface.report.interval) != 0) {
 
 				MAIN_DEBUG_MSG("---- Report Handling ---- (Time : %d) \n", mstime_get_time());
-
+				
 				while ((err_code = cmd_handler_prepare_command_from_file(&myCmdInterface, &myCmdInterface.report_file)) == NO_ERR) {
 
 					#if DEBUG_DISABLE_REPORT_PROCESSING == 1
+					MAIN_DEBUG_MSG("DEBUG_DISABLE_REPORT_PROCESSING == 1 / exit program");
 					err_code = ERR_END_OF_FILE;
 					break;
 					#endif
@@ -292,7 +321,7 @@ int main(int argc, char* argv[]) {
 					if (err_code != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Status of Report-Answer unexpected --- (status-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 						restore_last_file_pointer(&myCmdInterface.report_file);
-						DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
+						MAIN_DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
 						break;
 					}
 
@@ -319,6 +348,18 @@ int main(int argc, char* argv[]) {
 					}
 				}
 
+				if (err_code == ERR_FILE_OPEN) {
+					MAIN_DEBUG_MSG("---- Error opening Report-File\n");
+					LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- File Open FAILED !!! --- (error-code = %d / File: %s)", err_code, (char*)myCmdInterface.report_file.path);						
+					break;
+				}
+				
+				if (err_code == ERR_INVALID_ARGUMENT) {
+					MAIN_DEBUG_MSG("---- Invalid Argument Exception on Report-Handling\n");
+					LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- Report-Handling failed because of INVALID_ARGUMENT_EXCEPTION !!!");						
+					break;
+				}
+
 				if (err_code == ERR_END_OF_FILE) {
 					mySchedulingInterface.report.reference = mstime_get_time();
 				}
@@ -335,11 +376,11 @@ int main(int argc, char* argv[]) {
 					usleep(5000);
 				}
 
-				gpio_reset_pin(&myGpioInterface);
-				myGpioInterface.match_event_level = 1;
-
 				mySchedulingInterface.event.reference = mstime_get_time();
 				MAIN_DEBUG_MSG("---- Event Handling ---- (Time : %d)\n", mySchedulingInterface.event.reference);
+
+				gpio_reset_pin(&myGpioInterface);
+				myGpioInterface.match_event_level = 1;
 
 				// holds the command and message to perform event matching
 				COMMAND_INTERFACE cmd_match;
@@ -352,7 +393,7 @@ int main(int argc, char* argv[]) {
 					// we can live with missed events between to event-handling-iterations
 
 					if (memcmp(cmd_match.command.payload, myCmdInterface.command.payload, myCmdInterface.command.length) == 0) {
-						EVENT_DEBUG_MSG("--- Same Event Command - Will directly match the answer --- \n");
+						MAIN_DEBUG_MSG("--- Same Event Command - Will directly match the answer --- \n");
 						goto EVENT_HANDLING_MATCH_EVENT_ASNWER;
 					}
 
@@ -377,7 +418,7 @@ int main(int argc, char* argv[]) {
 					if (err_code != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Status of Report-Answer unexpected --- (status-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 						restore_last_file_pointer(&myCmdInterface.report_file);
-						DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
+						MAIN_DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
 						continue;
 					}
 
@@ -397,20 +438,32 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			#endif
+			
+			if (myMqttInterface.connection_lost != 0) {
+				MAIN_DEBUG_MSG("---- MQTT-CONNECTION LOST !!! ----\n");
+				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connection to MQTT-Broker lost - Trying to reconnect!");
+			}
+		}		
+			
+		if (myMqttInterface.connection_lost != 0) {
+			LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Try reconnecting to MQTT-Broker!");
+
+			MQTTClient_disconnect(myMqttInterface.client, 10000);
+			MQTTClient_destroy(&myMqttInterface.client);
+
+			usleep(500000);
+			
+		} else {
+		
+			MAIN_DEBUG_MSG("Fatal Error - Exit Program");
+			LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Fatal Error - Exit Program");
+			break;
 		}
-
-		MAIN_DEBUG_MSG("---- MQTT-CONNECTION LOST !!! ----\n");
-		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connection to MQTT-Broker lost - Trying to reconnect!");
-
-		MQTTClient_disconnect(myMqttInterface.client, 10000);
-		MQTTClient_destroy(&myMqttInterface.client);
-
-		usleep(500000);
 	}
 
 	spi_deinit(&myComInterface.data.spi);
 
-	DEBUG_MSG("- Disconnected from SmartHomeBroker.\n");
+	MAIN_DEBUG_MSG("- Disconnected from SmartHomeBroker.\n");
 
 	return 0;
 }
@@ -470,7 +523,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 			memset(p_cfg_interface->cfg_file.path, 0x00, FILE_PATH_MAX_STRING_LENGTH);
 			memcpy(p_cfg_interface->cfg_file.path, argv[i + 1], string_length(argv[i + 1]));
 
-			CFG_DEBUG_MSG("Using Config-File: %s\n", p_cfg_interface->cfg_file.path);
+			MAIN_CFG_DEBUG_MSG("Using Config-File: %s\n", p_cfg_interface->cfg_file.path);
 		}
 	}
 
@@ -479,7 +532,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 
 	FILE* config_file_handle = fopen((const char*)path, "r");
 	if (config_file_handle == NULL) {
-		CFG_DEBUG_MSG("--- Open Configuration-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
+		MAIN_CFG_DEBUG_MSG("--- Open Configuration-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
 		return ERR_FILE_OPEN;
 	}
 
@@ -509,7 +562,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 		memset(cfg_key + length_key, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_key);
 		memset(cfg_value + length_value, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_value);
 
-		CFG_DEBUG_MSG("key:%s : value:%s\n", cfg_key, cfg_value);
+		MAIN_CFG_DEBUG_MSG("key:%s : value:%s\n", cfg_key, cfg_value);
 
 		if (memcmp(cfg_key, CFG_NAME_MQTT_HOST_ADDR, length_key) == 0) {
 			memcpy(p_mqtt_interface->host_address, cfg_value, MQTT_HOST_ADDRESS_STRING_LENGTH);
@@ -584,7 +637,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 		}
 
 		else {
-			CFG_DEBUG_MSG("--- UNKNOWN CFG-KEY : %s\n", cfg_key);
+			MAIN_CFG_DEBUG_MSG("--- UNKNOWN CFG-KEY : %s\n", cfg_key);
 		}
 
 	} while (num_bytes != 0);
@@ -594,5 +647,43 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 
 void command_line_usage(void) {
 
+}
+
+
+static void reset_device(void) {
+
+	static GPIO_INTERFACE reset_pin = {
+		GPIO_RESET_PIN_NUM, //u8 pin_num ;
+		0,  // u8 is_initialized;
+		0, // u8 is_input;
+		0, //u8 is_high_level;
+		0, //u8 match_event_level;
+		0, //u8 event_rised;
+		0, //u32 sample_time_reference;
+		5, // u32 sample_timeout;
+		0, //u32 event_ref_time;
+		0, //u32 event_timeout;
+	};
+	
+	if (reset_pin.is_initialized == 0) {
+	
+		u8 err_code = gpio_initialize(&reset_pin);
+		if (err_code != NO_ERR ) {
+			MAIN_DEBUG_MSG("- Initializing Reset-Pin has FAILED !!! --- (error-code = %d)", err_code);
+			return;
+		}
+	}
+
+	MAIN_DEBUG_MSG("---- RESETTING DEVICE ----\n");
+
+	gpio_set_state(&reset_pin, GPIO_OFF);
+	
+	u32 time_reference_ms = mstime_get_time();	
+	while (mstime_is_time_up(time_reference_ms, DEVICE_RESET_TIME_MS) != 0);
+	
+	gpio_set_state(&reset_pin, GPIO_ON);
+	
+	time_reference_ms = mstime_get_time();	
+	while (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIME_MS) != 0);
 }
 

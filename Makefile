@@ -225,7 +225,7 @@ uninstall: stop_service
 
 update: stop_service
 	$(VERBOSE) $(ECHO) - Updateing daemon
-	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) $(CP) $(RELEASE_DIRECTORY)/$(TARGET) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start

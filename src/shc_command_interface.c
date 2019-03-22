@@ -34,6 +34,18 @@ void restore_last_file_pointer(FILE_INTERFACE* p_file) {
 
 
 u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
+		
+	COMMAND_DEBUG_MSG("--- cmd_handler_prepare_command_from_file\n");
+	
+	if (p_file == NULL) {
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file - INVALID_ARGUMENT !!! (p_file)\n");
+		return ERR_INVALID_ARGUMENT;
+	}
+	
+	if (p_cmd == NULL) {
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file - INVALID_ARGUMENT !!! (p_cmd)\n");
+		return ERR_INVALID_ARGUMENT;
+	}
 
 	p_file->handle = fopen(p_file->path, "r");
 	if (p_file->handle == NULL) {
@@ -51,7 +63,7 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 
 	fclose(p_file->handle);
 
-	//COMMAND_DEBUG_MSG("--- File-Line: %s\n", file_line);
+	COMMAND_DEBUG_MSG("--- File-Line: %s\n", file_line);
 
 	if (num_bytes == 0) {
 		COMMAND_DEBUG_MSG("--- End of Command-File reached !!!\n");
@@ -60,20 +72,32 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 		return ERR_END_OF_FILE;
 	}
 
-	//COMMAND_DEBUG_MSG("--- File-Pointer : %d\n", p_file->act_file_pointer);
+	COMMAND_DEBUG_MSG("--- File-Pointer : %d\n", p_file->act_file_pointer);
 
 	char command_answer_string[2 * GENERAL_STRING_BUFFER_MAX_LENGTH];
 	char command_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
 	char answer_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
 
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Splitting command string 1 \n");
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - file_line: %s\n", file_line);
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - num_bytes: %d\n", num_bytes);
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - p_cmd->message.payload: %s\n", (char*)p_cmd->message.payload);
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - GENERAL_STRING_BUFFER_MAX_LENGTH: %d\n", GENERAL_STRING_BUFFER_MAX_LENGTH);
+	
 	split_string('=', file_line, num_bytes, (char*)p_cmd->message.payload, GENERAL_STRING_BUFFER_MAX_LENGTH, command_answer_string, 2 * GENERAL_STRING_BUFFER_MAX_LENGTH);
 	split_string('=', command_answer_string, string_length(command_answer_string), command_string, GENERAL_STRING_BUFFER_MAX_LENGTH, answer_string, GENERAL_STRING_BUFFER_MAX_LENGTH);
+
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Reset Message string\n");
 
 	p_cmd->message.length = string_length((char*)p_cmd->message.payload);
 	memset(p_cmd->message.payload + p_cmd->message.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->message.length);
 
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Convert Hey-String to Byte-Array (Command) \n");
+
 	p_cmd->command.length = hex_string_to_byte_array(command_string, string_length(command_string), p_cmd->command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
 	memset(p_cmd->command.payload + p_cmd->command.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->command.length);
+
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Convert Hey-String to Byte-Array (Answer)\n");
 
 	p_cmd->answer.length = hex_string_to_byte_array(answer_string, string_length(answer_string), p_cmd->answer.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
 	memset(p_cmd->answer.payload + p_cmd->answer.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length);
