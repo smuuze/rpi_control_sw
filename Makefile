@@ -75,8 +75,8 @@ TARGET_SERVICE		:= shc_service
 # --------- Include Path
 
 INC_PATH =
-INC_PATH += -I $(APP_PATH)
-INC_PATH += -I $(TOOLCHAIN_INC_PATH)
+INC_PATH += $(APP_PATH)
+INC_PATH += $(TOOLCHAIN_INC_PATH)
 
 
 # --------- Library List
@@ -136,9 +136,14 @@ OBJ_FILES		:= $(addprefix $(OBJECT_DIRECTORY)/,$(notdir $(C_OBJ_FILES)))
 ELF_FILES		:= $(addprefix $(OBJECT_DIRECTORY)/,$(notdir $(C_ELF_FILES)))
 OBJ  			:= $(C_ELF_FILES)
 
+OBJECTS			:= $(CSRCS:.c=.o)
+DEBUG_OBJECTS		:= $(CSRCS:.c=.a)
+LOCAL_OBJECTS		:= $(notdir $(OBJECTS))
+LOCAL_DEBUG_OBJECTS	:= $(notdir $(DEBUG_OBJECTS))
+
 # --------- 
 
-all: obj_dir release_obj lss_file hex_file
+all: release_obj lss_file hex_file
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(TARGET).hex
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(TARGET).lss
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o $(TARGET)
@@ -146,7 +151,7 @@ all: obj_dir release_obj lss_file hex_file
 	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) $(TARGET)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
-release: obj_dir release_obj release_dir lss_file hex_file
+release: release_obj release_dir lss_file hex_file
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(RELEASE_DIRECTORY)/$(TARGET).hex
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(RELEASE_DIRECTORY)/$(TARGET).lss
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o $(RELEASE_DIRECTORY)/$(TARGET)
@@ -154,7 +159,7 @@ release: obj_dir release_obj release_dir lss_file hex_file
 	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) $(RELEASE_DIRECTORY)/$(TARGET)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 
-debug: obj_dir debug_obj lss_file hex_file
+debug: debug_obj lss_file hex_file
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(TARGET).hex
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(TARGET).lss
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).o $(TARGET)
@@ -173,13 +178,13 @@ clean:
 
 # --------- 
 
-release_obj:
+release_obj: obj_dir $(OBJECTS)
 	$(VERBOSE) $(ECHO) - Generating Relase-Object - Version: $(VERSION)
-	$(VERBOSE) $(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) -o $(OBJECT_DIRECTORY)/$(TARGET).o
+	$(VERBOSE) $(CC) $(DEFS) $(CFLAGS) $(LIBS) $(INC_PATH:%=-I%) $(LOCAL_OBJECTS:%=$(OBJECT_DIRECTORY)/%) -o $(OBJECT_DIRECTORY)/$(TARGET).o
 
-debug_obj:
+debug_obj: obj_dir $(DEBUG_OBJECTS)
 	$(VERBOSE) $(ECHO) - Generating Debug-Object - Version: $(VERSION)
-	$(VERBOSE) $(CC) $(DEFS) $(DEBUG_ENABLED) $(CFLAGS) $(LIBS) $(INC_PATH) $(CSRC) -o $(OBJECT_DIRECTORY)/$(TARGET).o
+	$(VERBOSE) $(CC) $(DEFS) $(DEBUG_ENABLED) $(CFLAGS) $(LIBS) $(INC_PATH:%=-I%) $(LOCAL_DEBUG_OBJECTS:%=$(OBJECT_DIRECTORY)/%) -o $(OBJECT_DIRECTORY)/$(TARGET).o
 
 hex_file:
 	$(VERBOSE) $(ECHO) - Generating $(OBJECT_DIRECTORY)/$(TARGET).hex
@@ -260,3 +265,13 @@ git_update:
 	$(VERBOSE) $(MAKE_FILE_RIGHTS) $(APP_PATH)/*.c
 	$(VERBOSE) $(MAKE_FILE_RIGHTS) $(APP_PATH)/*.h
 	$(VERBOSE) $(MAKE_FILE_RIGHTS) Makefile
+
+# --------- 
+
+.c.o:
+	$(VERBOSE) $(ECHO) $(MSG_COMPILING) $(notdir $<)
+	$(VERBOSE) $(CC) -c $(OPTIMIZATION) $(DEFS) $(CFLAGS) $(LIBS) $(LDFLAGS) $(MCU_FLAG) $(INC_PATH:%=-I%) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
+
+.c.a:
+	$(VERBOSE) $(ECHO) $(MSG_COMPILING) $(notdir $<)
+	$(VERBOSE) $(CC) -c $(OPTIMIZATION) $(DEFS) $(CFLAGS) $(DEBUG_ENABLED) $(LIBS) $(LDFLAGS) $(INC_PATH:%=-I%) $< -o $(OBJECT_DIRECTORY)/$(notdir $@)
