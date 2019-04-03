@@ -29,7 +29,7 @@ AVR_DUDE_MCU_NAME	:= m1284p
 AVR_DUDE_PORT		:=
 AVR_DUDE_BAUDRATE	:= 4800
 AVR_DUDE_PROGRAMMER	:= linuxgpio
-AVR_DUDE_UPDATE_PATH	:= ../fw_update
+AVR_DUDE_UPDATE_PATH	:= ../rpi_control_fw/cfg_rpi_hat_control_board_v2
 AVR_DUDE_CFG_FILE	:= avrdude/avrdude.conf
 AVR_DUDE_UPDATE_FILE	:= RPI_Hat_ControlBoard_V2.hex
 AVR_DUDE_UPDATE_FORMAT	:= i
@@ -189,6 +189,8 @@ hex_file:
 lss_file:
 	$(VERBOSE) $(ECHO) $(MSG_LISTING)
 	$(VERBOSE) $(OBJDUMP) -h -S $(OBJECT_DIRECTORY)/$(TARGET).o > $(OBJECT_DIRECTORY)/$(TARGET).lss
+
+# --------- 
 
 obj_dir:
 	$(VERBOSE) $(ECHO) - Creating Object directory: $(OBJECT_DIRECTORY)
