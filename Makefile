@@ -34,6 +34,12 @@ AVR_DUDE_CFG_FILE	:= avrdude/avrdude.conf
 AVR_DUDE_UPDATE_FILE	:= RPI_Hat_ControlBoard_V2.hex
 AVR_DUDE_UPDATE_FORMAT	:= i
 
+# See: http://www.engbedded.com/fusecalc/
+
+AVR_LFUSE		:= 0x7F
+AVR_HFUSE		:= 0xD9
+AVR_EFUSE		:= 0xFF
+
 
 RM			:= rm
 MK			:= mkdir -p
@@ -252,6 +258,12 @@ start_service:
 
 fw_update: stop_service
 	$(VERBOSE) $(AVR_DUDE) -C $(AVR_DUDE_CFG_FILE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U flash:w:"$(AVR_DUDE_UPDATE_PATH)/$(AVR_DUDE_UPDATE_FILE)":$(AVR_DUDE_UPDATE_FORMAT)
+	$(VERBOSE) $(ECHO) - Starting service
+	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
+	
+fuses: stop_service
+	$(VERBOSE) $(AVR_DUDE) -C $(AVR_DUDE_CFG_FILE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U lfuse:w:$(AVR_LFUSE):m -U hfuse:w:$(AVR_HFUSE):m -U efuse:w:$(AVR_EFUSE):m
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
