@@ -34,6 +34,14 @@ AVR_DUDE_CFG_FILE	:= avrdude/avrdude.conf
 AVR_DUDE_UPDATE_FILE	:= RPI_Hat_ControlBoard_V2.hex
 AVR_DUDE_UPDATE_FORMAT	:= i
 
+GPIO_MODE		:= gpio mode
+GPIO_PIN_SCK		:= 14
+GPIO_PIN_MOSI		:= 12
+GPIO_PIN_MISO		:= 13
+GPIO_MODE_MOSI		:= alt0
+GPIO_MODE_MISO		:= alt0
+GPIO_MODE_SCK		:= alt0
+
 # See: http://www.engbedded.com/fusecalc/
 
 AVR_LFUSE		:= 0x7F
@@ -277,6 +285,9 @@ start_service:
 
 fw_update: stop_service
 	$(VERBOSE) $(AVR_DUDE) -C $(AVR_DUDE_CFG_FILE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U flash:w:"$(AVR_DUDE_UPDATE_PATH)/$(AVR_DUDE_UPDATE_FILE)":$(AVR_DUDE_UPDATE_FORMAT)
+	$(VERBOSE) $(GPIO_MODE) $(GPIO_PIN_SCK) $(GPIO_MODE_SCK)
+	$(VERBOSE) $(GPIO_MODE) $(GPIO_PIN_MOSI) $(GPIO_MODE_MOSI)
+	$(VERBOSE) $(GPIO_MODE) $(GPIO_PIN_MISO) $(GPIO_MODE_MISO)
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
