@@ -1,4 +1,3 @@
-# ----------------------------------------
 #
 # Chipdesign 2013 - C Firmware
 #
@@ -130,11 +129,11 @@ CFLAGS +=
 
 CFLAGS += -Wall
 CFLAGS += -Os
-CFLAGS += -funsigned-char
-CFLAGS += -funsigned-bitfields
-CFLAGS += -fpack-struct
-CFLAGS += -fshort-enums
-CFLAGS += -lm
+#CFLAGS += -funsigned-char
+#CFLAGS += -funsigned-bitfields
+#CFLAGS += -fpack-struct
+#CFLAGS += -fshort-enums
+#CFLAGS += -lm
 
 LDFLAGS +=
 #LDFLAGS += --section-start init=0
