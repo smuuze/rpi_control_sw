@@ -29,10 +29,6 @@
 
 #include <wiringPi.h>
 
-#define GPIO_IS_BUSY_PIN_NUM			0
-#define GPIO_SAMPLE_PIN				29
-#define GPIO_EVENT_PIN				3
-
 #define GPIO_SPI_CS0_PIN_NUM			10
 #define GPIO_SPI_SCK_PIN_NUM			14
 #define GPIO_SPI_MOSI_PIN_NUM			12

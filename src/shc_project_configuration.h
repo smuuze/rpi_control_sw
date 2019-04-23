@@ -45,4 +45,8 @@
 
 #define GPIO_RESET_PIN_NUM			5
 
+#define GPIO_IS_BUSY_PIN_NUM			0
+#define GPIO_SAMPLE_PIN				29
+#define GPIO_EVENT_PIN				21
+
 #endif // _SHC_PROJECT_CONFIGURATION_H_

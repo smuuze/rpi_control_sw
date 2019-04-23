@@ -112,10 +112,6 @@ int main(int argc, char* argv[]) {
 	MAIN_DEBUG_MSG("RPORT PROCESSING IS DISABLED !!!\n");
 	#endif
 
-	#if DEBUG_DISABLE_EVENT_PROCESSING == 1
-	MAIN_DEBUG_MSG("EVENT PROCESSING IS DISABLED !!!\n");
-	#endif
-
 	MAIN_DEBUG_MSG("\n");
 	MAIN_DEBUG_MSG("---- Loading Configuration ---- \n");
 
@@ -366,18 +362,18 @@ int main(int argc, char* argv[]) {
 			}
 
 			// --- Event Handling ---
-			#if DEBUG_DISABLE_EVENT_PROCESSING == 0
 			if (myCmdInterface.is_active != 0
 				&& gpio_is_event(&myGpioInterface) != 0
 				&& mstime_is_time_up(mySchedulingInterface.event.reference, mySchedulingInterface.event.interval) != 0) {
 
+				MAIN_DEBUG_MSG("---- Event Handling ---- (Time : %d)\n", mySchedulingInterface.event.reference);
+				
 				while (myMqttInterface.msg_delivered == 0 ) {
 					MAIN_DEBUG_MSG(".");
 					usleep(5000);
 				}
 
 				mySchedulingInterface.event.reference = mstime_get_time();
-				MAIN_DEBUG_MSG("---- Event Handling ---- (Time : %d)\n", mySchedulingInterface.event.reference);
 
 				gpio_reset_pin(&myGpioInterface);
 				myGpioInterface.match_event_level = 1;
@@ -437,7 +433,6 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
-			#endif
 			
 			if (myMqttInterface.connection_lost != 0) {
 				MAIN_DEBUG_MSG("---- MQTT-CONNECTION LOST !!! ----\n");
