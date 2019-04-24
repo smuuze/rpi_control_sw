@@ -177,7 +177,7 @@ debug: debug_obj hex_file lss_file prog_size
 release: release_dir release_obj hex_file lss_file prog_size
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).hex $(RELEASE_DIRECTORY)/$(TARGET).hex
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).lss $(RELEASE_DIRECTORY)/$(TARGET).lss
-	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).elf $(RELEASE_DIRECTORY)/$(TARGET).elf
+	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).elf $(RELEASE_DIRECTORY)/$(TARGET)
 	$(VERBOSE) $(CP) $(OBJECT_DIRECTORY)/$(TARGET).map $(RELEASE_DIRECTORY)/$(TARGET).map
 	$(VERBOSE) $(ECHO) $(MSG_PROG_LOCATION) $(RELEASE_DIRECTORY)/$(TARGET)
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
@@ -244,7 +244,7 @@ install:
 	$(VERBOSE) $(CP) service/shc_service /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(MAKE_EXE) /etc/init.d/$(TARGET_SERVICE)
 	$(VERBOSE) $(ECHO) - Copy daemon to target: /usr/sbin/$(TARGET_DAEMON)
-	$(VERBOSE) $(CP) v$(VERSION)/$(TARGET)_v$(VERSION) /usr/sbin/$(TARGET_DAEMON)
+	$(VERBOSE) $(CP) $(RELEASE_DIRECTORY)/$(TARGET) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(MAKE_EXE) /usr/sbin/$(TARGET_DAEMON)
 	$(VERBOSE) $(ECHO) - Register service with inid.d
 	$(VERBOSE) update-rc.d $(TARGET_SERVICE) defaults
