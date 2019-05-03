@@ -52,10 +52,7 @@
 #define GPIO_READ_PIN(pin_num)			gpioRead(pin_num)
 #define GPIO_INITIALIZE()			gpioInitialise()
 
-#endif			
-
-#define IS_EXECUTION_COMMAND(msg)		(memcmp(msg.payload, "exe", 3) == 0 ? 1 : 0)
-#define IS_COMMUNICATION_COMMAND(msg)		(memcmp(msg.payload, "cmd", 3) == 0 ? 1 : 0)					 		
+#endif				 		
 
 /*!
  *

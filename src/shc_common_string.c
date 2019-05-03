@@ -91,7 +91,7 @@ u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
 			break;
 		}
 		
-		if (character == '\n') {
+		if (character == '\n' || character == '\r') {
 			//STRING_DEBUG_MSG("----> End of line reached (LF)\n");
 			break;
 		}	

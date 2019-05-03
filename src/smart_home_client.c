@@ -298,27 +298,36 @@ int main(int argc, char* argv[]) {
 
 					memcpy(myCmdInterface.message.payload + myCmdInterface.message.length, "=", 1);
 					myCmdInterface.message.length += 1;
+					
+					if (cmd_handler_is_communication_command(&myCmdInterface) != 0) {
+					
+						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin);
+						if (err_code != NO_ERR) {
+							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Sending Report-Command has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
+							restore_last_file_pointer(&myCmdInterface.report_file);
+							break;
+						}
 
-					err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin);
-					if (err_code != NO_ERR) {
-						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Sending Report-Command has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
-						restore_last_file_pointer(&myCmdInterface.report_file);
-						break;
-					}
+						err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS);
+						if (err_code != NO_ERR) {
+							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Receive Report-Answer has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
+							restore_last_file_pointer(&myCmdInterface.report_file);
+							break;
+						}
 
-					err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS);
-					if (err_code != NO_ERR) {
-						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Receive Report-Answer has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
-						restore_last_file_pointer(&myCmdInterface.report_file);
-						break;
-					}
+						err_code = cmd_handler_get_error_code(&myCmdInterface);
+						if (err_code != NO_ERR) {
+							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Status of Report-Answer unexpected --- (status-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
+							restore_last_file_pointer(&myCmdInterface.report_file);
+							MAIN_DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
+							break;
+						}
+					
+					} else if (cmd_handler_is_execution_command(&myCmdInterface) != 0) {
 
-					err_code = cmd_handler_get_error_code(&myCmdInterface);
-					if (err_code != NO_ERR) {
-						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Status of Report-Answer unexpected --- (status-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
-						restore_last_file_pointer(&myCmdInterface.report_file);
-						MAIN_DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
-						break;
+						if ((err_code = cmd_handler_run_execution(&myCmdInterface)) != NO_ERR) {
+							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Exec-Command has FAILED !!! --- (Exec:%s / Err:%d)", myCmdInterface.message.payload, err_code);
+						}
 					}
 
 					err_code = cmd_handler_prepare_report_message(&myCmdInterface, err_code);

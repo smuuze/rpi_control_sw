@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG			noDEBUG_MSG
+#define COMMAND_DEBUG_MSG			DEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -76,6 +76,8 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 
 	char command_answer_string[2 * GENERAL_STRING_BUFFER_MAX_LENGTH];
 	char command_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
+	char command_type_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
+	char command_data_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
 	char answer_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
 
 	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Splitting command string 1 \n");
@@ -84,25 +86,52 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - p_cmd->message.payload: %s\n", (char*)p_cmd->message.payload);
 	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - GENERAL_STRING_BUFFER_MAX_LENGTH: %d\n", GENERAL_STRING_BUFFER_MAX_LENGTH);
 	
+	// Split File-Line into name and value of command-definition
 	split_string('=', file_line, num_bytes, (char*)p_cmd->message.payload, GENERAL_STRING_BUFFER_MAX_LENGTH, command_answer_string, 2 * GENERAL_STRING_BUFFER_MAX_LENGTH);
+	
+	// Split command value into command to perform and answer to match for if in event-mode
 	split_string('=', command_answer_string, string_length(command_answer_string), command_string, GENERAL_STRING_BUFFER_MAX_LENGTH, answer_string, GENERAL_STRING_BUFFER_MAX_LENGTH);
+	
+	// Get Type of command by splitting command
+	split_string(':', command_string, string_length(command_string), command_type_string, GENERAL_STRING_BUFFER_MAX_LENGTH, command_data_string, GENERAL_STRING_BUFFER_MAX_LENGTH);
+	
+	if (memcmp(command_type_string, COMMANAND_INTERFACE_TYPE_COMMUNICATION, COMMAND_INTERFACE_TYPE_STRING_LENGTH) == 0) {
+	
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - This is a communication command\n");
+		p_cmd->type = COMMAND_TYPE_COMMUNICATION;
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Convert Hex-String to Byte-Array (Command) \n");
+	
+		p_cmd->command.length = hex_string_to_byte_array(command_data_string, string_length(command_data_string), p_cmd->command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
+		memset(p_cmd->command.payload + p_cmd->command.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->command.length);
+
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Convert Hey-String to Byte-Array (Answer)\n");
+
+		p_cmd->answer.length = hex_string_to_byte_array(answer_string, string_length(answer_string), p_cmd->answer.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
+		memset(p_cmd->answer.payload + p_cmd->answer.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length);
+		
+	} else if (memcmp(command_type_string, COMMAND_INTERFACE_TYPE_EXECUTION, COMMAND_INTERFACE_TYPE_STRING_LENGTH) == 0) {
+	
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - This is a execution command\n");
+		p_cmd->type = COMMAND_TYPE_EXECUTION;
+		
+		p_cmd->command.length = string_length(command_data_string);
+		memcpy(p_cmd->command.payload, command_data_string, p_cmd->command.length);
+		memset(p_cmd->command.payload + p_cmd->command.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->command.length);		
+		
+	} else {
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - This is a UNKNOWN command !!! ---\n");
+		p_cmd->type = COMMAND_TYPE_UNKNOWN;
+	}
 
 	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Reset Message string\n");
 
 	p_cmd->message.length = string_length((char*)p_cmd->message.payload);
 	memset(p_cmd->message.payload + p_cmd->message.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->message.length);
 
-	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Convert Hey-String to Byte-Array (Command) \n");
+	if (p_cmd->type == COMMAND_TYPE_COMMUNICATION) {
+	}
 
-	p_cmd->command.length = hex_string_to_byte_array(command_string, string_length(command_string), p_cmd->command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
-	memset(p_cmd->command.payload + p_cmd->command.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->command.length);
-
-	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Convert Hey-String to Byte-Array (Answer)\n");
-
-	p_cmd->answer.length = hex_string_to_byte_array(answer_string, string_length(answer_string), p_cmd->answer.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
-	memset(p_cmd->answer.payload + p_cmd->answer.length, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length);
-
-	COMMAND_DEBUG_MSG("--- Command: MSG=%s / CMD=%s / ANSW=%s\n", p_cmd->message.payload, command_string, answer_string);
+	COMMAND_DEBUG_MSG("--- Command: MSG=%s / CMD=%s / TYPE=%d / ANSW=%s\n", p_cmd->message.payload, command_data_string, p_cmd->type, answer_string);
 
 	return NO_ERR;
 }
@@ -476,4 +505,13 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 
 u8 cmd_handler_get_error_code(COMMAND_INTERFACE* p_cmd) {
 	return p_cmd->answer.payload[1];
+}
+
+u8 cmd_handler_is_communication_command(COMMAND_INTERFACE* p_cmd) {
+	return p_cmd->type == COMMAND_TYPE_COMMUNICATION ? 1 : 0;
+}
+
+u8 cmd_handler_is_execution_command(COMMAND_INTERFACE* p_cmd) {
+	return p_cmd->type == COMMAND_TYPE_EXECUTION ? 1 : 0;
+
 }

@@ -16,12 +16,30 @@
 #include "shc_gpio_interface.h"
 #include "shc_spi_interface.h"
 
+
+#define COMMAND_INTERFACE_TYPE_STRING_LENGTH	3
+#define COMMANAND_INTERFACE_TYPE_COMMUNICATION	"com"
+#define COMMAND_INTERFACE_TYPE_EXECUTION	"exe"
+
+#define IS_EXECUTION_COMMAND(msg)		(memcmp(msg.payload, "exe", 3) == 0 ? 1 : 0)
+#define IS_COMMUNICATION_COMMAND(msg)		(memcmp(msg.payload, "cmd", 3) == 0 ? 1 : 0)	
+
+/*
+ *
+ */
+typedef enum {
+	COMMAND_TYPE_UNKNOWN		= 0x00,
+	COMMAND_TYPE_COMMUNICATION,
+	COMMAND_TYPE_EXECUTION
+} COMMAND_INTERFACE_TYPE;
+
 /*
  *
  */
 typedef struct {
-	
-	u8 is_active;
+
+	u8 is_active;	
+	COMMAND_INTERFACE_TYPE type;
 	
 	STRING_BUFFER message;
 	STRING_BUFFER command;
@@ -35,6 +53,7 @@ typedef struct {
 	char command_file_path[FILE_PATH_MAX_STRING_LENGTH];
 	char report_file_path[FILE_PATH_MAX_STRING_LENGTH];
 	char event_file_path[FILE_PATH_MAX_STRING_LENGTH];
+	
 } COMMAND_INTERFACE;
 
 /*!
@@ -81,6 +100,16 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
  *
  */
 u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio, u32 timeout_ms);
+
+/*!
+ *
+ */
+u8 cmd_handler_is_communication_command(COMMAND_INTERFACE* p_cmd);
+
+/*!
+ *
+ */
+u8 cmd_handler_is_execution_command(COMMAND_INTERFACE* p_cmd);
 
 /*!
  *
