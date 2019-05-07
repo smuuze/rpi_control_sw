@@ -16,6 +16,8 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
+#define STRING_DEBUG_MSG				noDEBUG_MSG
+
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -83,15 +85,15 @@ u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
 	char character;
 	u16 num_bytes_read = 0;
 	
-	//STRING_DEBUG_MSG("--- Line: \n");
+	STRING_DEBUG_MSG("read_line() - Line: ");
 	
 	while ((character = getc(file_handle)) != 255) {
 		
-		if (num_bytes_read == num_max_bytes - 1) {
+		if (num_bytes_read == num_max_bytes) {
 			break;
 		}
 		
-		if (character == '\n' || character == '\r') {
+		if (character == '\n') {
 			//STRING_DEBUG_MSG("----> End of line reached (LF)\n");
 			break;
 		}	
@@ -101,15 +103,15 @@ u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
 			continue;
 		}
 		
-		//STRING_DEBUG_MSG("%d ", character);
-		
-		p_buffer_to[num_bytes_read] = character;
-		num_bytes_read += 1;
+		STRING_DEBUG_MSG("%d ", character);		
+		p_buffer_to[num_bytes_read++] = character;
 	}
 	
-	//STRING_DEBUG_MSG("\n");
+	STRING_DEBUG_MSG("\n");
 	
-	p_buffer_to[num_bytes_read + 1] = '\0';
+	if (num_bytes_read < num_max_bytes) {
+		memset(p_buffer_to + num_bytes_read, '\0', num_max_bytes - num_bytes_read);
+	}
 	
 	return num_bytes_read;
 }
@@ -125,9 +127,14 @@ u16 read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
  */
 void split_string(char splitter, char* p_string_in, u16 string_in_len, char* p_string_out_1, u16 string_out_1_max_len, char* p_string_out_2, u16 string_out_2_max_len) {
 
-	u8 i = 0;
-	u8 j = 0;
+	u16 num_bytes_string1 = 0;
+	u16 num_bytes_string2 = 0;
+	
 	u8 splitter_detected = 0;
+	
+	u16 i = 0;
+	
+	STRING_DEBUG_MSG("split_string() - String1: ");
 	
 	for ( ; i < string_in_len; i++) {	
 	
@@ -136,29 +143,39 @@ void split_string(char splitter, char* p_string_in, u16 string_in_len, char* p_s
 		}
 	
 		if (splitter_detected == 0 && p_string_in[i] == splitter) {
-			p_string_out_1[j] = '\0';
-			j = 0;
+			//p_string_out_1[num_bytes_string1] = '\0';
 			splitter_detected = 1;
+			STRING_DEBUG_MSG("\nsplit_string() - String2: ");
 			continue;
 		}
 	
-		if (splitter_detected != 0) {
+		if (splitter_detected == 0) {
 		
-			if (j < string_out_2_max_len - 1) {
-				p_string_out_2[j] = p_string_in[i];
-				j++;
+			// processing string 1
+			if (num_bytes_string1 < string_out_1_max_len) {
+				p_string_out_1[num_bytes_string1++] = p_string_in[i];
+				STRING_DEBUG_MSG("%c", p_string_in[i]);
 			}
 			
-		} else {
+		} else {	
 		
-			if (j < string_out_1_max_len - 1) {
-				p_string_out_1[j] = p_string_in[i];
-				j++;
-			}			
+			// processing string 2
+			if (num_bytes_string2 < string_out_2_max_len) {
+				p_string_out_2[num_bytes_string2++] = p_string_in[i];
+				STRING_DEBUG_MSG("%c", p_string_in[i]);
+			}					
 		}
 	}	
 		
-	p_string_out_2[j] = '\0';
+	STRING_DEBUG_MSG("\n");
+	
+	if (num_bytes_string1 < string_out_1_max_len) {
+		memset(p_string_out_1 + num_bytes_string1, '\0', string_out_1_max_len - num_bytes_string1);
+	}	
+		
+	if (num_bytes_string2 < string_out_2_max_len) {
+		memset(p_string_out_2 + num_bytes_string2, '\0', string_out_2_max_len - num_bytes_string2);
+	}
 }
 
 /*

@@ -547,24 +547,24 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 	char line[512];
 	char cfg_key[GENERAL_STRING_BUFFER_MAX_LENGTH];
 	char cfg_value[GENERAL_STRING_BUFFER_MAX_LENGTH];
-	u16 num_bytes = 0;
+	u16 num_bytes = read_line(config_file_handle, line, 512);
 
-	do  {
-		num_bytes = read_line(config_file_handle, line, 512);
+	while (num_bytes != 0) {
+	 
 		split_string('=', line, num_bytes, cfg_key, GENERAL_STRING_BUFFER_MAX_LENGTH, cfg_value, GENERAL_STRING_BUFFER_MAX_LENGTH);
 
 		u16 length_key = string_length(cfg_key);
 		if (length_key == 0) {
-			continue;
+			goto NEXT_CONFIG_LINE;
 		}
 
 		u16 length_value = string_length(cfg_value);
 		if (length_value == 0) {
-			continue;
+			goto NEXT_CONFIG_LINE;
 		}
 
-		memset(cfg_key + length_key, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_key);
-		memset(cfg_value + length_value, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_value);
+		//memset(cfg_key + length_key, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_key);
+		//memset(cfg_value + length_value, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_value);
 
 		MAIN_CFG_DEBUG_MSG("key:%s : value:%s\n", cfg_key, cfg_value);
 
@@ -643,8 +643,10 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 		else {
 			MAIN_CFG_DEBUG_MSG("--- UNKNOWN CFG-KEY : %s\n", cfg_key);
 		}
-
-	} while (num_bytes != 0);
+		
+		NEXT_CONFIG_LINE:
+		num_bytes = read_line(config_file_handle, line, 512);
+	}
 
 	return NO_ERR;
 }

@@ -49,4 +49,6 @@
 #define GPIO_SAMPLE_PIN				29
 #define GPIO_EVENT_PIN				21
 
+#define config_MAX_LENGTH_OF_FILE_LINE		512
+
 #endif // _SHC_PROJECT_CONFIGURATION_H_

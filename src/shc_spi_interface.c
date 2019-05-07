@@ -49,49 +49,49 @@ void spi_init(SPI_INTERFACE* p_spi_handle) {
 
 	p_spi_handle->_handle_id = open(p_spi_handle->device, O_RDWR);
 	if (p_spi_handle->_handle_id < 0) {
-		SPI_DEBUG_MSG("Cant open SPI device");
+		SPI_DEBUG_MSG("spi_init() - Cant open SPI device\n");
 		return;
 	}
 	
 	u8 err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_WR_MODE32, &p_spi_handle->mode);
 	if (err_code) {
-		SPI_DEBUG_MSG("Can't set spi mode");
+		SPI_DEBUG_MSG("spi_init() - Can't set spi mode - SPI_IOC_WR_MODE32 - error: %d\n", err_code);
 		return;
 	}
 
 	err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_RD_MODE32, &p_spi_handle->mode);
 	if (err_code) {
-		SPI_DEBUG_MSG("Can't get spi mode");
+		SPI_DEBUG_MSG("spi_init() - Can't get spi mode - SPI_IOC_RD_MODE32\n");
 		return;
 	}
 	
 	err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_WR_BITS_PER_WORD, &p_spi_handle->bits_per_word);
 	if (err_code) {
-		SPI_DEBUG_MSG("Can't set bits per word");
+		SPI_DEBUG_MSG("spi_init() - Can't set bits per word\n");
 		return;
 	}
 
 	err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_RD_BITS_PER_WORD, &p_spi_handle->bits_per_word);
 	if (err_code) {
-		SPI_DEBUG_MSG("Can't get bits per word");
+		SPI_DEBUG_MSG("spi_init() - Can't get bits per word - SPI_IOC_RD_BITS_PER_WORD\n");
 		return;
 	}
 	
 	err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_WR_MAX_SPEED_HZ, &p_spi_handle->speed_hz);
 	if (err_code) {
-		SPI_DEBUG_MSG("Can't set max speed hz");
+		SPI_DEBUG_MSG("spi_init() - Can't set max speed hz - SPI_IOC_WR_MAX_SPEED_HZ\n");
 		return;
 	}
 
 	err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_RD_MAX_SPEED_HZ, &p_spi_handle->speed_hz);
 	if (err_code) {
-		SPI_DEBUG_MSG("Can't get max speed hz");
+		SPI_DEBUG_MSG("spi_init() - Can't get max speed hz - SPI_IOC_RD_MAX_SPEED_HZ\n");
 		return;
 	}	
 	
 	err_code = gpio_initialize(&ce_pin);
 	if (err_code != NO_ERR ) {
-		SPI_DEBUG_MSG("spi_init()- Initializing CE-Pin has FAILED !!! --- (error-code = %d)", err_code);
+		SPI_DEBUG_MSG("spi_init() - Initializing CE-Pin has FAILED !!! --- (error-code = %d)\n", err_code);
 		return;
 	}
 	

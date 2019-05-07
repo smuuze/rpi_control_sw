@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG			DEBUG_MSG
+#define COMMAND_DEBUG_MSG			noDEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -53,10 +53,10 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 		return ERR_FILE_OPEN;
 	}
 
-	char file_line[512];
+	char file_line[config_MAX_LENGTH_OF_FILE_LINE];
 
 	fseek(p_file->handle, p_file->act_file_pointer, SEEK_SET);
-	u8 num_bytes = read_line(p_file->handle, file_line, 512);
+	u8 num_bytes = read_line(p_file->handle, file_line, config_MAX_LENGTH_OF_FILE_LINE);
 
 	p_file->last_file_pointer = p_file->act_file_pointer;
 	p_file->act_file_pointer = ftell(p_file->handle);
