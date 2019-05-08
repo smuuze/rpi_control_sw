@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
 					if ((err_code = cmd_handler_prepare_execution(&myCmdInterface)) != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Prepare Exec-Command has FAILED !!! --- (Exec:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 
-					} else if ((err_code = cmd_handler_run_execution(&myCmdInterface)) != NO_ERR) {
+					} else if ((err_code = cmd_handler_run_execution(&myCmdInterface, COMMAND_INTERFACE_IGNORE_OUTPUT)) != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Exec-Command has FAILED !!! --- (Exec:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 					}
 
@@ -319,24 +319,26 @@ int main(int argc, char* argv[]) {
 						if (err_code != NO_ERR) {
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Status of Report-Answer unexpected --- (status-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 							restore_last_file_pointer(&myCmdInterface.report_file);
-							MAIN_DEBUG_MSG("-- Incorrect Status-Code --- (ERR: %d)\n", err_code);
+							MAIN_DEBUG_MSG("main() - Incorrect Status-Code --- (ERR: %d)\n", err_code);
 							break;
 						}
 					
 					} else if (cmd_handler_is_execution_command(&myCmdInterface) != 0) {
 
-						if ((err_code = cmd_handler_run_execution(&myCmdInterface)) != NO_ERR) {
+						if ((err_code = cmd_handler_run_execution(&myCmdInterface, COMMAND_INTERFACE_CATCH_OUTPUT)) != NO_ERR) {
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Exec-Command has FAILED !!! --- (Exec:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 						}
 					}
 
-					err_code = cmd_handler_prepare_report_message(&myCmdInterface, err_code);
+					u8 string_is_byte_array = cmd_handler_is_communication_command(&myCmdInterface) ? 1 : 0;					
+					err_code = cmd_handler_prepare_report_message(&myCmdInterface, err_code, string_is_byte_array);
+					
 					if (err_code != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Prepare Report-Message has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 						continue;
 					}
 
-					MAIN_DEBUG_MSG("Report-Answer : %s\n", myCmdInterface.message.payload);
+					MAIN_DEBUG_MSG("main() - Report-Answer : %s\n", myCmdInterface.message.payload);
 
 					err_code = mqtt_send_message(&myMqttInterface, &myCmdInterface.message);
 					if (err_code != NO_ERR) {

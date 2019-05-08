@@ -21,7 +21,9 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG			noDEBUG_MSG
+#define COMMAND_DEBUG_MSG				DEBUG_MSG
+
+#define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -149,9 +151,23 @@ u8 cmd_handler_match_event_answer(COMMAND_INTERFACE* p_cmd, COMMAND_INTERFACE* p
 	return memcmp(p_cmd->answer.payload, p_cmd_match->answer.payload, p_cmd->answer.length) == 0 ? NO_ERR : ERR_NOT_EQUAL;
 }
 
-u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code) {
+u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code, u8 answer_is_byte_array) {
 
-	if (err_code == NO_ERR) {
+	if (err_code != NO_ERR) {
+	
+		COMMAND_DEBUG_MSG("---> Receive Report-Command has FAILED !!! --- (ERROR:%d)\n", err_code);
+		
+		sprintf (
+			(char*)(p_cmd->message.payload + p_cmd->message.length),
+			"ERR(%d)", err_code
+		);
+		
+		p_cmd->message.length = string_length((char*)p_cmd->message.payload);
+		return NO_ERR;
+	}
+	
+	if (answer_is_byte_array != 0) {
+	
 		p_cmd->message.length +=
 			byte_array_string_to_hex_string (
 				p_cmd->answer.payload,
@@ -159,13 +175,13 @@ u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code) {
 				(char*)(p_cmd->message.payload + p_cmd->message.length),
 				GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->message.length
 			);
+			
 	} else {
-		COMMAND_DEBUG_MSG("---> Receive Report-Command has FAILED !!! --- (ERROR:%d)\n", err_code);
-		sprintf (
-			(char*)(p_cmd->message.payload + p_cmd->message.length),
-			"ERR(%d)", err_code
-		);
-		p_cmd->message.length = string_length((char*)p_cmd->message.payload);
+	
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_report_message() - Answer: %s (Length: %d)\n", p_cmd->answer.payload, p_cmd->answer.length);
+	
+		p_cmd->message.length += p_cmd->answer.length;
+		memcpy(p_cmd->message.payload + p_cmd->message.length, p_cmd->answer.payload, p_cmd->answer.length);
 	}
 
 	return NO_ERR;
@@ -258,8 +274,40 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 	}
 }
 
-u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd) {
-	system((const char*)p_cmd->command.payload);
+u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
+
+	if (get_output == COMMAND_INTERFACE_IGNORE_OUTPUT) {
+		system((const char*)p_cmd->command.payload);
+		return NO_ERR;
+	}
+	
+	p_cmd->answer.length = 0;
+	
+	FILE* p_pipe = popen((const char*)p_cmd->command.payload, "r");		//Send the command, popen exits immediately
+	if (!p_pipe) {
+		COMMAND_DEBUG_MSG("cmd_handler_run_execution() - popen has FAILED !!! --- error: Command not found\n");
+		return ERR_BAD_CMD;
+	}
+	
+	while( !feof(p_pipe) ) {
+	
+		char t_buffer[COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER];		
+		if( fgets(t_buffer, COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER, p_pipe) == NULL) {
+			continue;
+		}
+		
+		u8 byte_count = string_length(t_buffer);
+		memcpy(p_cmd->answer.payload + p_cmd->answer.length, t_buffer, byte_count);
+		p_cmd->answer.length += byte_count;
+	}
+	
+	pclose(p_pipe);
+	
+	if (p_cmd->answer.length < GENERAL_STRING_BUFFER_MAX_LENGTH) {
+		memset(p_cmd->answer.payload + p_cmd->answer.length, '\0', GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length);
+	}
+	
+	COMMAND_DEBUG_MSG("cmd_handler_run_execution() - popen output: %s\n", p_cmd->answer.payload);
 	return NO_ERR;
 }
 

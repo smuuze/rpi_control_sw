@@ -24,6 +24,9 @@
 #define IS_EXECUTION_COMMAND(msg)		(memcmp(msg.payload, "exe", 3) == 0 ? 1 : 0)
 #define IS_COMMUNICATION_COMMAND(msg)		(memcmp(msg.payload, "cmd", 3) == 0 ? 1 : 0)	
 
+#define COMMAND_INTERFACE_IGNORE_OUTPUT		0
+#define COMMAND_INTERFACE_CATCH_OUTPUT		1
+
 /*
  *
  */
@@ -74,7 +77,7 @@ u8 cmd_handler_match_event_answer(COMMAND_INTERFACE* p_cmd, COMMAND_INTERFACE* p
 /*!
  *
  */
-u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code);
+u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code, u8 answer_is_byte_array);
 
 /*!
  *
@@ -89,7 +92,7 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd);
 /*!
  *
  */
-u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd);
+u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output);
 
 /*!
  *
