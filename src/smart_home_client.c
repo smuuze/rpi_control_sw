@@ -30,8 +30,8 @@
 
 // -------- DEBUGGING -------------------------------------------------------------------
 
-#define MAIN_DEBUG_MSG					DEBUG_MSG
-#define MAIN_CFG_DEBUG_MSG				DEBUG_MSG
+#define MAIN_DEBUG_MSG					noDEBUG_MSG
+#define MAIN_CFG_DEBUG_MSG				noDEBUG_MSG
 
 // -------- Command-Code ----------------------------------------------------------------
 

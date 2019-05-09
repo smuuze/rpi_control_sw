@@ -41,6 +41,11 @@ u16 string_length(char* p_str);
 /*
  *
  */
+u16 string_trim(u8* p_string, u8 max_length);
+
+/*
+ *
+ */
 u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array, u8 byte_array_max_len);
 
 /*

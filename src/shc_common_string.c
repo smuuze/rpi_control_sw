@@ -73,6 +73,41 @@ void hex_dump(const void *src, size_t length, size_t line_size, char *prefix) {
 	*/
 }
 
+u16 string_trim(u8* p_string, u8 max_length) {
+
+	u16 length = string_length((char*)p_string);
+	u16 index_of_start = 0;
+	u16 index_of_end = 0;
+	
+	u16 i = 0;
+	for ( ; i < length; i++) {
+		
+		if (p_string[i] < 33 && p_string[i] > 154) { 
+			continue;
+		}
+			
+		index_of_start = i;
+		break;
+	}
+	
+	i = length;
+	for ( ; i != 0; i--) {
+		
+		if (p_string[i - 1] >= 33 && p_string[i - 1] <= 154) { 
+			continue;
+		}
+			
+		index_of_end = i - 1;
+		break;
+	}
+	
+	u8 new_length = index_of_end - index_of_start;
+	memmove(p_string, p_string + index_of_start, new_length);
+	memset(p_string + new_length, '\0', max_length - new_length);
+	
+	return new_length;
+}
+
 /*!
  * returns number of bytes read
  */

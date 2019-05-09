@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG				DEBUG_MSG
+#define COMMAND_DEBUG_MSG				noDEBUG_MSG
 
 #define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
@@ -180,8 +180,10 @@ u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code, u8 
 	
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_report_message() - Answer: %s (Length: %d)\n", p_cmd->answer.payload, p_cmd->answer.length);
 	
-		p_cmd->message.length += p_cmd->answer.length;
 		memcpy(p_cmd->message.payload + p_cmd->message.length, p_cmd->answer.payload, p_cmd->answer.length);
+		p_cmd->message.length += p_cmd->answer.length;
+		
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_report_message() - Message: %s (Length: %d)\n", p_cmd->message.payload, p_cmd->message.length);
 	}
 
 	return NO_ERR;
@@ -302,6 +304,8 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 	}
 	
 	pclose(p_pipe);
+	
+	p_cmd->answer.length = string_trim(p_cmd->answer.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
 	
 	if (p_cmd->answer.length < GENERAL_STRING_BUFFER_MAX_LENGTH) {
 		memset(p_cmd->answer.payload + p_cmd->answer.length, '\0', GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length);
