@@ -160,12 +160,18 @@ int main(int argc, char* argv[]) {
 	SET_MESSAGE(&myCmdInterface.message, CMD_VERSION_STR, CMD_VERSION_LEN);
 
 	if (cmd_handler_prepare_command(&myCmdInterface) != NO_ERR) {
+		MAIN_DEBUG_MSG("main() - Set Command-Interface to inactive - preparing command has FAILED !!! ---  \n");
+		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Set Command-Interface to inactive - preparing command has FAILED");
 		myCmdInterface.is_active = 0;
 
 	} else if (cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin) != NO_ERR) {
+		MAIN_DEBUG_MSG("main() - Set Command-Interface to inactive - sending command has FAILED !!! ---  \n");
+		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Set Command-Interface to inactive - sending command has FAILED");
 		myCmdInterface.is_active = 0;
 
 	} else if (cmd_handler_receive_answer(&myCmdInterface, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
+		MAIN_DEBUG_MSG("main() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
+		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Set Command-Interface to inactive - receiving answer has FAILED");
 		myCmdInterface.is_active = 0;
 	}
 
@@ -282,8 +288,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			// --- Report Handling ---
-			if (myCmdInterface.is_active != 0
-				&& myMqttInterface.msg_delivered != 0
+			if (myMqttInterface.msg_delivered != 0
 				&& mstime_is_time_up(mySchedulingInterface.report.reference, mySchedulingInterface.report.interval) != 0) {
 
 				MAIN_DEBUG_MSG("---- Report Handling ---- (Time : %d) \n", mstime_get_time());
@@ -299,7 +304,7 @@ int main(int argc, char* argv[]) {
 					memcpy(myCmdInterface.message.payload + myCmdInterface.message.length, "=", 1);
 					myCmdInterface.message.length += 1;
 					
-					if (cmd_handler_is_communication_command(&myCmdInterface) != 0) {
+					if ( (cmd_handler_is_communication_command(&myCmdInterface) != 0) && (myCmdInterface.is_active != 0) ) {
 					
 						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin);
 						if (err_code != NO_ERR) {
