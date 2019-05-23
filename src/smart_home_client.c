@@ -30,7 +30,7 @@
 
 // -------- DEBUGGING -------------------------------------------------------------------
 
-#define MAIN_DEBUG_MSG					noDEBUG_MSG
+#define MAIN_DEBUG_MSG					DEBUG_MSG
 #define MAIN_CFG_DEBUG_MSG				noDEBUG_MSG
 
 // -------- Command-Code ----------------------------------------------------------------
@@ -66,6 +66,9 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
 
 
 // -------- STATIC DATA -----------------------------------------------------------------
+
+
+GPIO_INTERFACE_BUILD_INOUT(RESET_PIN, GPIO_RESET_PIN_NUM)
 
 /*!
  *
@@ -129,8 +132,6 @@ int main(int argc, char* argv[]) {
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize GPIO-Interface");
 
 	gpio_initialize(&myGpioInterface);
-	
-	reset_device();
 
 	GPIO_INTERFACE is_busy_pin = {
 		GPIO_IS_BUSY_PIN_NUM, //u8 pin_num ;
@@ -154,8 +155,14 @@ int main(int argc, char* argv[]) {
 	MAIN_DEBUG_MSG("\n");
 	MAIN_DEBUG_MSG("---- Initialize COM-Interface---- \n");
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize Communication-Interface");
+	
+	cmd_handler_init();
 
 	spi_init(&myComInterface.data.spi);
+	
+	RESET_PIN_init();
+	RESET_PIN_pull_up();	
+	reset_device();
 
 	SET_MESSAGE(&myCmdInterface.message, CMD_VERSION_STR, CMD_VERSION_LEN);
 
@@ -665,6 +672,7 @@ void command_line_usage(void) {
 
 static void reset_device(void) {
 
+	/*
 	static GPIO_INTERFACE reset_pin = {
 		GPIO_RESET_PIN_NUM, //u8 pin_num ;
 		0,  // u8 is_initialized;
@@ -686,17 +694,18 @@ static void reset_device(void) {
 			return;
 		}
 	}
+	*/
 
 	MAIN_DEBUG_MSG("---- RESETTING DEVICE ----\n");
 
-	gpio_set_state(&reset_pin, GPIO_OFF);
+	RESET_PIN_drive_low(); //gpio_set_state(&reset_pin, GPIO_OFF);
 	
 	u32 time_reference_ms = mstime_get_time();	
-	while (mstime_is_time_up(time_reference_ms, DEVICE_RESET_TIME_MS) != 0);
+	while (mstime_is_time_up(time_reference_ms, DEVICE_RESET_TIME_MS) == 0);
 	
-	gpio_set_state(&reset_pin, GPIO_ON);
+	RESET_PIN_pull_up(); // gpio_set_state(&reset_pin, GPIO_ON);
 	
 	time_reference_ms = mstime_get_time();	
-	while (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIME_MS) != 0);
+	while (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIME_MS) == 0);
 }
 

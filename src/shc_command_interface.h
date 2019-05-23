@@ -67,6 +67,11 @@ void restore_last_file_pointer(FILE_INTERFACE* p_file);
 /*!
  *
  */
+void cmd_handler_init(void);
+
+/*!
+ *
+ */
 u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file);
 
 /*!

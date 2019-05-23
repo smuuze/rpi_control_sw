@@ -122,3 +122,103 @@ void gpio_reset_pin(GPIO_INTERFACE* p_gpio) {
 	p_gpio->event_timeout = 0;
 	p_gpio->sample_time_reference = 0;
 }
+
+
+// -------------------------------------------------------------------------------------------------------------------------
+
+void gpio_interface_init(GPIO_INTERFACE* p_gpio) {
+
+	static u8 is_initialized = 0;
+
+	if (is_initialized == 0) {
+
+		int err_code = GPIO_INITIALIZE();
+		if (err_code < 0) {
+			GPIO_DEBUG_MSG("- Initializing GPIOD has FAILED !!! --- (err-code = %d)\n", err_code);
+		}
+
+		GPIO_DEBUG_MSG("- Initializing gpio has succeeded!\n");
+		is_initialized = 1;
+	}
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, p_gpio->is_input);
+
+	if (p_gpio->is_input != 0) {
+	
+		if (p_gpio->is_high_level != 0) {
+			gpio_interface_pull_up(p_gpio);
+		} else {
+			gpio_interface_pull_down(p_gpio);
+		}
+		
+	} else {
+	
+		if (p_gpio->is_high_level != 0) {
+			gpio_interface_drive_high(p_gpio);
+		} else {
+			gpio_interface_drive_low(p_gpio);
+		}
+	}
+
+	p_gpio->is_initialized = 1;
+}
+
+void gpio_interface_drive_high(GPIO_INTERFACE* p_gpio) {
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_OUTPUT);
+	GPIO_WRITE_PIN(p_gpio->pin_num, GPIO_ON);
+}
+
+void gpio_interface_drive_low(GPIO_INTERFACE* p_gpio) {
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_OUTPUT);
+	GPIO_WRITE_PIN(p_gpio->pin_num, GPIO_OFF);
+}
+
+void gpio_interface_no_drive(GPIO_INTERFACE* p_gpio) {
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_INPUT);
+	GPIO_PULL_UP_DOWN(p_gpio->pin_num, GPIO_HIGH_Z);
+}
+
+void gpio_interface_toggle_level(GPIO_INTERFACE* p_gpio) {
+
+	if (p_gpio->is_input != 0) {
+		GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_OUTPUT);
+	} 
+	
+	if (p_gpio->is_high_level != 0) {
+		GPIO_WRITE_PIN(p_gpio->pin_num, GPIO_OFF);
+		p_gpio->is_high_level = 0;
+		
+	} else {
+		GPIO_WRITE_PIN(p_gpio->pin_num, GPIO_ON);
+		p_gpio->is_high_level = 1;
+	}
+}
+
+void gpio_interface_pull_up(GPIO_INTERFACE* p_gpio) {
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_INPUT);
+	GPIO_PULL_UP_DOWN(p_gpio->pin_num, GPIO_ON);
+}
+
+void gpio_interface_pull_down(GPIO_INTERFACE* p_gpio) {
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_INPUT);
+	GPIO_PULL_UP_DOWN(p_gpio->pin_num, GPIO_OFF);
+}
+
+void gpio_interface_no_pull(GPIO_INTERFACE* p_gpio) {
+
+	GPIO_CONFIGURE_PIN(p_gpio->pin_num, GPIO_INPUT);
+	GPIO_PULL_UP_DOWN(p_gpio->pin_num, GPIO_HIGH_Z);
+}
+
+u8 gpio_interface_is_high_level(GPIO_INTERFACE* p_gpio) {
+	return GPIO_READ_PIN(p_gpio->pin_num) == GPIO_ON ? 1 : 0;
+}
+
+u8 gpio_interface_is_low_level(GPIO_INTERFACE* p_gpio) {
+	return GPIO_READ_PIN(p_gpio->pin_num) == GPIO_OFF ? 1 : 0;
+}

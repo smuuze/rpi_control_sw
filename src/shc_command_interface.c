@@ -27,6 +27,48 @@
 
 // ---- STATIC DATA -------------------------------------------------------------
 
+GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
+
+// ---- STATIC FUNCTIONS --------------------------------------------------------
+
+static u8 cmd_handler_request_device(void) {
+
+	u32 time_reference = mstime_get_time(); 
+	
+	// wait for high level if not present
+	while (REQUEST_PIN_is_low_level()) {
+
+		usleep(5000); // wait for HW to be ready
+
+		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
+			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for high-level of ready-pin has FAIELD !!! ---\n");
+			return ERR_COMMUNICATION;
+		}
+	}
+	
+	REQUEST_PIN_drive_low();
+	
+	time_reference = mstime_get_time();
+	while (mstime_is_time_up(time_reference, CMD_REQUEST_TIME_MS) == 0) {	
+		usleep(5000); // wait for HW to be ready
+	}
+	
+	REQUEST_PIN_pull_up();
+	
+	// wait for low level
+	time_reference = mstime_get_time(); 
+	while (REQUEST_PIN_is_high_level()) {
+
+		usleep(5000); // wait for HW to be ready
+
+		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
+			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for low-level of ready-pin has FAIELD !!! ---\n");
+			return ERR_COMMUNICATION;
+		}
+	}
+	
+	return NO_ERR;
+}
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
@@ -34,6 +76,10 @@ void restore_last_file_pointer(FILE_INTERFACE* p_file) {
 	p_file->act_file_pointer = p_file->last_file_pointer;
 }
 
+void cmd_handler_init(void) {
+	REQUEST_PIN_init();
+	REQUEST_PIN_pull_up();
+}
 
 u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
 		
@@ -320,34 +366,13 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 	if (p_cmd->command.length == 0) {
 		return ERR_INVALID_ARGUMENT;
 	}
-
-	// Set GPIO to low for at least 50ms to activate control-board
-	gpio_reset_pin(p_gpio);
-	p_gpio->match_event_level = 0;
-	p_gpio->is_input = 1;
-	gpio_set_state(p_gpio, GPIO_ON);
-
-	u8 err_code = NO_ERR;
-	u32 time_reference = mstime_get_time();
-
-	while (gpio_is_event(p_gpio) == 0) {
-
-		usleep(p_gpio->sample_timeout * 1000); // wait for HW to be ready
-
-		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
-			COMMAND_DEBUG_MSG("-- ERROR on sending command - wait for low-level of ready-pin has FAIELD !!! ---\n");
-			err_code = ERR_COMMUNICATION;
-			break;
-		}
-	}
-
+	
+	u8 err_code = cmd_handler_request_device();
 	if (err_code != NO_ERR) {
-		gpio_set_state(p_gpio, GPIO_OFF);
+		COMMAND_DEBUG_MSG("cmd_handler_send_command() - Requesting device has FAILED !!! --- (error: %d)\n", err_code);
 		return err_code;
 	}
-
-	//spi_start_tx();
-
+	
 	switch (p_com->type) {
 		case SPI :
 
@@ -381,27 +406,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 			} else {
 				err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*)(p_cmd->command.payload) + 1, NULL);
 			}
-
-			// while (p_cmd->answer.length != 0) {
-
-				// COMMAND_DEBUG_MSG("--- Need to read old answer from the interface (Length: %d)!!!\n", p_cmd->answer.length);
-
-				// u8 length = p_cmd->answer.length;
-				// if (length > GENERAL_STRING_BUFFER_MAX_LENGTH) {
-					// length = GENERAL_STRING_BUFFER_MAX_LENGTH;
-				// }
-
-				// err_code = spi_transfer (
-					// &p_com->data.spi,
-					// length,
-					// NULL,
-					// p_cmd->answer.payload
-				// );
-
-				// p_cmd->answer.length -= length;
-			// }
-
-//			err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*) p_cmd->command.payload, NULL);
+			
 			break;
 
 		case I2C :
@@ -414,60 +419,16 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 			break;
 	}
 
-	gpio_reset_pin(p_gpio);
-	p_gpio->match_event_level = 1;
-	p_gpio->is_input = 1;
-	gpio_set_state(p_gpio, GPIO_ON);
-
-	time_reference = mstime_get_time();
-
-	while (gpio_is_event(p_gpio) == 0) {
-
-		usleep(p_gpio->sample_timeout * 1000);
-
-		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
-			COMMAND_DEBUG_MSG("-- ERROR after sending command - wait for high-level of ready-pin has FAIELD !!! ---\n");
-			err_code = ERR_COMMUNICATION;
-			break;
-		}
-	}
-
-	//spi_stop_trx();
-	gpio_set_state(p_gpio, GPIO_OFF);
-
 	return err_code;
 }
 
 u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio, u32 timeout_ms) {
-
-	u8 err_code = NO_ERR;
-
-	gpio_reset_pin(p_gpio);
-	p_gpio->match_event_level = 0;
-	p_gpio->is_input = 1;
-	gpio_set_state(p_gpio, GPIO_ON);
-
-	u32 time_reference = mstime_get_time();
-	p_cmd->answer.length = 0;
-
-	while (gpio_is_event(p_gpio) == 0) {
-
-		usleep(p_gpio->sample_timeout * 1000); // wait a little bit for answer to be complete
-
-		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
-			COMMAND_DEBUG_MSG("-- ERROR on receiving answer - wait for low-level of ready-pin has FAIELD !!! ---\n");
-			err_code = ERR_COMMUNICATION;
-			break;
-		}
-	}
-
-	gpio_set_state(p_gpio, GPIO_OFF);
-
+	
+	u8 err_code = cmd_handler_request_device();
 	if (err_code != NO_ERR) {
+		COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Requesting device has FAILED !!! --- (error: %d)\n", err_code);
 		return err_code;
 	}
-
-	//spi_start_tx();
 
 	switch (p_com->type) {
 		case SPI :
@@ -530,27 +491,6 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 	COMMAND_DEBUG_MSG("------> High-Level-Time: %d ms\n", high_level_waiting_time);
 	COMMAND_DEBUG_MSG("------> Transfer-Time: %d ms\n", transfer_time);
 	#endif
-
-	gpio_reset_pin(p_gpio);
-	p_gpio->match_event_level = 1;
-	p_gpio->is_input = 1;
-	gpio_set_state(p_gpio, GPIO_ON);
-
-	time_reference = mstime_get_time();
-
-	while (gpio_is_event(p_gpio) == 0) {
-
-		usleep(p_gpio->sample_timeout * 1000); // wait a little bit for answer to be complete
-
-		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
-			COMMAND_DEBUG_MSG("-- ERROR after receiving answer - wait for high-level of ready-pin has FAIELD !!! ---\n");
-			err_code = ERR_COMMUNICATION;
-			break;
-		}
-	}
-
-	//spi_stop_trx();
-	gpio_set_state(p_gpio, GPIO_OFF);
 
 	return err_code;
 }

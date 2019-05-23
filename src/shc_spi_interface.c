@@ -24,7 +24,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define SPI_DEBUG_MSG				DEBUG_MSG
+#define SPI_DEBUG_MSG				noDEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -40,6 +40,8 @@ static GPIO_INTERFACE ce_pin = {
 	0, //u32 event_ref_time;
 	0, //u32 event_timeout;
 };
+
+GPIO_INTERFACE_BUILD_INOUT(SLAVE_CS, GPIO_CE0_PIN_NUM)
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
@@ -95,7 +97,9 @@ void spi_init(SPI_INTERFACE* p_spi_handle) {
 		return;
 	}
 	
-	gpio_set_state(&ce_pin, GPIO_ON);
+	//gpio_set_state(&ce_pin, GPIO_ON);
+	SLAVE_CS_init();
+	SLAVE_CS_pull_up();
 }
 
 void spi_deinit(SPI_INTERFACE* p_spi_handle) {
@@ -150,9 +154,9 @@ u8 spi_transfer(SPI_INTERFACE* p_spi_handle, size_t num_bytes, const u8* p_buffe
 	}	
 	*/
 	
-	gpio_set_state(&ce_pin, GPIO_OFF);
+	SLAVE_CS_drive_low(); //gpio_set_state(&ce_pin, GPIO_OFF);
 	u8 err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_MESSAGE(1), &spi_tr);
-	gpio_set_state(&ce_pin, GPIO_ON);
+	SLAVE_CS_pull_up(); //gpio_set_state(&ce_pin, GPIO_ON);
 
 	hex_dump((const void*)tmp_tx_buffer, num_bytes, 32, "TX");
 	hex_dump((const void*)tmp_rx_buffer, num_bytes, 32, "RX");

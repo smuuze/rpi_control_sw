@@ -13,6 +13,7 @@
 #include "shc_project_configuration.h"
 #include "shc_common_types.h"
 
+// ----------------------------------------------------------------------------------------------------------------------
 
 #define GPIO_ON					1
 #define GPIO_OFF				0
@@ -52,7 +53,76 @@
 #define GPIO_READ_PIN(pin_num)			gpioRead(pin_num)
 #define GPIO_INITIALIZE()			gpioInitialise()
 
-#endif				 		
+#endif
+
+// ----------------------------------------------------------------------------------------------------------------------
+
+#define GPIO_INTERFACE_BUILD_INOUT(name, pin_number)									\
+															\
+	static GPIO_INTERFACE __##name##_pin_descirptor = {								\
+		.pin_num = pin_number,											\
+		.is_initialized = 0,											\
+		.is_input = 1,												\
+		.is_high_level = 1,											\
+		.match_event_level = 0,											\
+		.event_rised = 0,											\
+		.sample_time_reference = 0,										\
+		.sample_timeout = 0,											\
+		.event_ref_time = 0,											\
+		.event_timeout = 0											\
+	};														\
+															\
+	void name##_init(void) {											\
+		gpio_interface_init(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	void name##_drive_high(void) {											\
+		gpio_interface_drive_high(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	void name##_drive_low(void) {											\
+		gpio_interface_drive_low(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	void name##_no_drive(void) {											\
+		gpio_interface_no_drive(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	void name##_toggle_level(void) {										\
+		gpio_interface_toggle_level(&__##name##_pin_descirptor);						\
+	}														\
+															\
+	void name##_pull_up(void) {											\
+		gpio_interface_pull_up(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	void name##_pull_down(void) {											\
+		gpio_interface_pull_down(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	void name##_no_pull(void) {											\
+		gpio_interface_no_pull(&__##name##_pin_descirptor);							\
+	}														\
+															\
+	u8 name##_is_high_level(void) {											\
+		return gpio_interface_is_high_level(&__##name##_pin_descirptor);					\
+	}														\
+															\
+	u8 name##_is_low_level(void) {											\
+		return gpio_interface_is_low_level(&__##name##_pin_descirptor);						\
+	}														\
+
+#define GPIO_INTERFACE_INCLUDE_INOUT(name)										\
+	void name##_drive_high(void);											\
+	void name##_drive_low(void);											\
+	void name##_no_drive(void);											\
+	void name##_pull_up(void);											\
+	void name##_pull_down(void);											\
+	void name##_no_pull(void);											\
+	u8 name##_is_low(void);												\
+	u8 name##_is_high(void);
+	
+// ----------------------------------------------------------------------------------------------------------------------		
 
 /*!
  *
@@ -69,6 +139,60 @@ typedef struct {
 	u32 event_ref_time;
 	u32 event_timeout;
 } GPIO_INTERFACE;
+
+// ----------------------------------------------------------------------------------------------------------------------
+
+/*!
+ *
+ */
+void gpio_interface_init(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_drive_high(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_drive_low(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_no_drive(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_toggle_level(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_pull_up(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_pull_down(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+void gpio_interface_no_pull(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+u8 gpio_interface_is_high_level(GPIO_INTERFACE* p_descriptor);
+
+/*!
+ *
+ */
+u8 gpio_interface_is_low_level(GPIO_INTERFACE* p_gpio);
+
+// ----------------------------------------------------------------------------------------------------------------------
 
 /*!
  *
