@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Exec-Command has FAILED !!! --- (Exec:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 					}
 
-				} else if (IS_COMMUNICATION_COMMAND(myCmdInterface.message)) {
+				} else if ( (IS_COMMUNICATION_COMMAND(myCmdInterface.message) != 0) && (myCmdInterface.is_active != 0) ) {
 
 					if (cmd_handler_prepare_command(&myCmdInterface) == NO_ERR) {
 
@@ -457,6 +457,13 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
+
+			if ((myCmdInterface.is_active != 0) && (myCmdInterface.fail_counter == CMD_MAXIMUM_COM_FAIL_COUNT - 1)) {
+				MAIN_DEBUG_MSG("main() - Connection to Control-Board has been lost !!! ---\n");
+				LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Connection to Control-Board has been lost !!! ---");
+
+				myCmdInterface.is_active = 0;
+			}
 			
 			if (myMqttInterface.connection_lost != 0) {
 				MAIN_DEBUG_MSG("main() - MQTT-CONNECTION LOST - ! - ! - ! -\n");
@@ -527,6 +534,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 	p_cmd_interface->event_file.handle = 0;
 	p_cmd_interface->event_file.act_file_pointer = 0;
 	p_cmd_interface->is_active = 1;
+	p_cmd_interface->fail_counter = 0;
 
 	p_cfg_interface->log_file.act_file_pointer = 0;
 

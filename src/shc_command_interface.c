@@ -370,6 +370,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 	u8 err_code = cmd_handler_request_device();
 	if (err_code != NO_ERR) {
 		COMMAND_DEBUG_MSG("cmd_handler_send_command() - Requesting device has FAILED !!! --- (error: %d)\n", err_code);
+		p_cmd->fail_counter += 1;
 		return err_code;
 	}
 	
@@ -386,12 +387,14 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 
 			if (err_code != NO_ERR) {
 				COMMAND_DEBUG_MSG("-- ERROR before sending command - reading old answer length has FAIELD !!! --- \n");
+				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length > GENERAL_STRING_BUFFER_MAX_LENGTH) {
 				err_code = ERR_ANSWER_LENGTH;
 				COMMAND_DEBUG_MSG("-- ERROR before sending command - old anser to long OVERFLOW !!! --- \n");
+				p_cmd->fail_counter += 1;
 				break;
 			}
 
@@ -427,6 +430,7 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 	u8 err_code = cmd_handler_request_device();
 	if (err_code != NO_ERR) {
 		COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Requesting device has FAILED !!! --- (error: %d)\n", err_code);
+		p_cmd->fail_counter += 1;
 		return err_code;
 	}
 
@@ -444,17 +448,20 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 			if (err_code) {
 				COMMAND_DEBUG_MSG("-- Receiving answer-length has FAILED !!! --- (ERR: %d)\n", err_code);
 				err_code = ERR_ANSWER_LENGTH;
+				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length == 0) {
 				COMMAND_DEBUG_MSG("-- Answer-Length is zero, nothing to receive. \n");
+				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length > GENERAL_STRING_BUFFER_MAX_LENGTH) {
 				COMMAND_DEBUG_MSG("-- Answer-Length is too Long !!! --- (LENGTH: %d)\n", p_cmd->answer.length);
 				err_code = ERR_ANSWER_LENGTH;
+				p_cmd->fail_counter += 1;
 				break;
 			}
 
@@ -469,6 +476,7 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GP
 			if (err_code) {
 				COMMAND_DEBUG_MSG("-- Receiving answer has FAILED !!! --- (ERR: %d)\n", err_code);
 				err_code = ERR_COMMUNICATION;
+				p_cmd->fail_counter += 1;
 				break;
 			}
 

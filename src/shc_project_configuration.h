@@ -6,7 +6,7 @@
  *	Brief	:
  * ------------------------------------------------------------------------------
  */
- 
+
 #ifndef _SHC_PROJECT_CONFIGURATION_H_
 #define _SHC_PROJECT_CONFIGURATION_H_
 
@@ -36,6 +36,7 @@
 #define CMD_TX_COMMAND_TIMEOUT_MS		1000
 #define CMD_ACTIVATE_TIMEOUT_MS			250
 #define CMD_REQUEST_TIME_MS			60
+#define CMD_MAXIMUM_COM_FAIL_COUNT		5
 
 #define MQTT_CONNECTION_LOST_TIMEOUT_MS		30000
 

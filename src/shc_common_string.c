@@ -50,8 +50,11 @@ void hex_dump(const void *src, size_t length, size_t line_size, char *prefix) {
 			
 			STRING_DEBUG_MSG(" | ");  /* right close */			
 			while (line < address) {
-				unsigned char c = *line++;
-				STRING_DEBUG_MSG("%c", (c < 33 || c == 255) ? 0x2E : c);
+				
+				#ifdef DEBUG_ENABLED
+					unsigned char c = *line++;
+					STRING_DEBUG_MSG("%c", (c < 33 || c == 255) ? 0x2E : c);
+				#endif
 			}
 			
 			STRING_DEBUG_MSG("\n");			

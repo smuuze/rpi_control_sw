@@ -41,7 +41,9 @@ typedef enum {
  */
 typedef struct {
 
-	u8 is_active;	
+	u8 is_active;
+	u8 fail_counter;
+	
 	COMMAND_INTERFACE_TYPE type;
 	
 	STRING_BUFFER message;
