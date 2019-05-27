@@ -458,7 +458,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-			if ((myCmdInterface.is_active != 0) && (myCmdInterface.fail_counter == CMD_MAXIMUM_COM_FAIL_COUNT - 1)) {
+			if ((myCmdInterface.is_active != 0) && (myCmdInterface.fail_counter > CMD_MAXIMUM_COM_FAIL_COUNT - 1)) {
 				MAIN_DEBUG_MSG("main() - Connection to Control-Board has been lost !!! ---\n");
 				LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Connection to Control-Board has been lost !!! ---");
 
