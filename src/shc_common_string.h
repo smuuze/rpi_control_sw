@@ -41,6 +41,11 @@ u16 string_length(char* p_str);
 /*
  *
  */
+u16 string_append(char* p_string_to, char* p_string_from, u16 max_length);
+
+/*
+ *
+ */
 u16 string_trim(u8* p_string, u8 max_length);
 
 /*

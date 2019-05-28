@@ -16,6 +16,10 @@
 #include "shc_file_interface.h"
 #include "shc_debug_interface.h"
 
+// -------- DEBUGGING -------------------------------------------------------------------
+
+#define LOG_DEBUG_MSG				noDEBUG_MSG
+
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 
@@ -31,19 +35,48 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
 	
 	char path[64];
 	sprintf(path, "%s", p_file->path);
-	LOG_DEBUG_MSG("LOG-DEBUG: Using Log-File: %s \n", path);
+	//LOG_DEBUG_MSG("LOG-DEBUG: Using Log-File: %s \n", path);
+	
+	if (file_get_size(p_file) > LOG_FILE_MAX_SIZE_BYTES) {
+				
+		LOG_DEBUG_MSG("log_message() - Limit of file size reached\n");
+		
+		FILE_INTERFACE backup_file;
+		
+		memcpy(backup_file.path, p_file->path, FILE_PATH_MAX_STRING_LENGTH);		
+		string_append(backup_file.path, ".old", FILE_PATH_MAX_STRING_LENGTH);
+		
+		u8 err = 0;
+		
+		if (file_is_existing(&backup_file) != 0) {
+		
+			LOG_DEBUG_MSG("log_message() - Old log-file exists, will delete it\n");
+			
+			err = file_delete(&backup_file);
+			if (err != 0) {
+				LOG_DEBUG_MSG("log_message() - Deleting old file has FAILED !!! --- (error: %d)\n", err);
+			}
+		}
+		
+		LOG_DEBUG_MSG("log_message() - Renaming old file \"%s\" -> \"%s\"\n", p_file->path, backup_file.path);
+		
+		err = file_rename(p_file, &backup_file);
+		if (err != 0) {
+				LOG_DEBUG_MSG("log_message() - Renaming old file has FAILED !!! --- (error: %d)\n", err);
+		}
+	}
 	
 	if (file_is_existing(p_file) == 0) {
 		p_file->handle = fopen((const char*)path, "w");
-		LOG_DEBUG_MSG("LOG-DEBUG: Log-File does not exists, will create it\n");	
+		LOG_DEBUG_MSG("log_message() - Log-File does not exists, will create it\n");	
 		
 	} else {
 		p_file->handle = fopen((const char*)path, "a");
-		LOG_DEBUG_MSG("LOG-DEBUG: Appending Log-Message to existing file \n");	
+		//LOG_DEBUG_MSG("log_message() - Appending Log-Message to existing file \n");	
 	}	
 	
 	if (p_file->handle == NULL) {
-		LOG_DEBUG_MSG("LOG-DEBUG: Open Log-File has FAILED !!! --- \n");
+		LOG_DEBUG_MSG("log_message() - Open Log-File has FAILED !!! --- \n");
 		return;
 	}
 	
@@ -56,7 +89,7 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
 	
 	int err_code = fprintf(p_file->handle, "%s \t %d \t %s \r\n", date_string, error_level, p_msg_from->payload);
 	if (err_code < 0) {
-		LOG_DEBUG_MSG("LOG-DEBUG: Writing File has FAILED !!! --- (ERROR: %d)\n", err_code);		
+		LOG_DEBUG_MSG("log_message() - Writing File has FAILED !!! --- (ERROR: %d)\n", err_code);		
 	}
 		
 	fclose(p_file->handle);

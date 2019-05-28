@@ -232,6 +232,19 @@ u16 string_length(char* p_str) {
 	*/
 }
 
+u16 string_append(char* p_string_to, char* p_string_from, u16 max_length) {
+
+	u16 len_string_to   = string_length(p_string_to);
+	u16 len_string_from = string_length(p_string_to);
+	
+	if ((len_string_to + len_string_from) > max_length) {
+		len_string_from = max_length - len_string_to;
+	}
+	
+	memcpy((u8*)(p_string_to + len_string_to), (u8*)p_string_from, len_string_from);
+	return (len_string_to + len_string_from);	
+}
+
 u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array, u8 byte_array_max_len) {
 	
 	if (hex_string_len < 2) {

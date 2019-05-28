@@ -22,7 +22,7 @@
 
 #include <time.h>
 
-// -------- SCHEDULE INTERVAL DEFAULTS -------------------------------------------------------------------
+// -------- SCHEDULE INTERVAL DEFAULTS --------------------------------------------------
 
 #define REPORT_SCHEDULE_DEFAULT_INTERVAL_MS		60000
 #define EVENT_SCHEDULE_DEFAULT_INTERVAL_MS		1500

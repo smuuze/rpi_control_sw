@@ -37,7 +37,6 @@
 
 #define EVENT_DEBUG_MSG				noDEBUG_MSG
 #define REPORT_DEBUG_MSG			noDEBUG_MSG
-#define LOG_DEBUG_MSG				noDEBUG_MSG
 #define CFG_DEBUG_MSG				noDEBUG_MSG
 
 #define SET_MESSAGE(p_sb,p_msg,len_msg)		memcpy((p_sb)->payload, p_msg, len_msg); \

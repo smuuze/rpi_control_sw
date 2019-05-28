@@ -26,7 +26,9 @@
 
 #define COMMAND_LINE_ARGUMENT_CFG_FILE		"-cfg"
 
-#define FILE_PATH_MAX_STRING_LENGTH		64
+#define FILE_PATH_MAX_STRING_LENGTH		96
+
+#define LOG_FILE_MAX_SIZE_BYTES			(10 * 1024 * 1024)
 
 #define CONFIGURATION_FILE_PATH			"smart_home_configuration_file.txt"
 #define COMMAND_FILE_PATH			"smart_home_command_file.txt"

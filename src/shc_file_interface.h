@@ -34,4 +34,19 @@ u8 file_has_changed(FILE_INTERFACE* p_file);
  */
 u8 file_is_existing(FILE_INTERFACE* p_file);
 
+/*!
+ *
+ */
+u32 file_get_size(FILE_INTERFACE* p_file);
+
+/*!
+ *
+ */
+u8 file_delete(FILE_INTERFACE* p_file);
+
+/*!
+ *
+ */
+u8 file_rename(FILE_INTERFACE* p_old_file, FILE_INTERFACE* p_new_file);
+
 #endif // _SHC_FILE_INTERFACE_H_
