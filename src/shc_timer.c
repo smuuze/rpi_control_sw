@@ -12,6 +12,8 @@
 #include "shc_common_string.h"
 #include "shc_common_configuration.h"
 
+#include "shc_timer.h"
+
 /*
  *
  */
@@ -29,6 +31,16 @@ u32 mstime_get_time(void) {
  *
  */
 u8 mstime_is_time_up(u32 reference_time, u32 interval_time) {
-	return (mstime_get_time() - reference_time) > interval_time ? 1 : 0;
+	return (mstime_elapsed(reference_time) < interval_time) ? 0 : 1;
 }
 
+u32 mstime_elapsed(u32 reference_time) {
+
+	u32 time = mstime_get_time();
+
+	if (time < reference_time) {
+		return (TIMER_MAX_TIME_U32 - reference_time) + time;
+	}
+
+	return time - reference_time;
+}

@@ -11,6 +11,8 @@
 
 #include "shc_common_types.h"
 
+#define TIMER_MAX_TIME_U32			0xFFFFFFFF
+
 
 /*!
  *
@@ -26,6 +28,13 @@ u32 mstime_get_time(void);
  * @return
  */
 u8 mstime_is_time_up(u32 reference_time, u32 interval_time);
+
+
+/*!
+ *
+ * @return
+ */
+u32 mstime_elapsed(u32 reference_time);
 
 
 #endif /* SHC_TIMER_H_ */
