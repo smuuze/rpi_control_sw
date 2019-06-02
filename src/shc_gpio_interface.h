@@ -119,8 +119,8 @@
 	void name##_pull_up(void);											\
 	void name##_pull_down(void);											\
 	void name##_no_pull(void);											\
-	u8 name##_is_low(void);												\
-	u8 name##_is_high(void);
+	u8 name##_is_low_level(void);											\
+	u8 name##_is_high_level(void);
 	
 // ----------------------------------------------------------------------------------------------------------------------		
 

@@ -31,7 +31,7 @@
 // -------- DEBUGGING -------------------------------------------------------------------
 
 #define MAIN_DEBUG_MSG					DEBUG_MSG
-#define MAIN_CFG_DEBUG_MSG				noDEBUG_MSG
+#define MAIN_CFG_DEBUG_MSG				DEBUG_MSG
 
 // -------- Command-Code ----------------------------------------------------------------
 
@@ -69,6 +69,7 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
 
 
 GPIO_INTERFACE_BUILD_INOUT(RESET_PIN, GPIO_RESET_PIN_NUM)
+GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
 
 /*!
  *
@@ -150,16 +151,20 @@ int main(int argc, char* argv[]) {
 		return err_code;
 	}
 
+	spi_init(&myComInterface.data.spi);
+
+	REQUEST_PIN_init();
+	REQUEST_PIN_no_pull();
+
+	RESET_PIN_init();
+	RESET_PIN_no_pull();
+
+	reset_device();
+
 	MAIN_DEBUG_MSG("main() - INITIALIZE COMMUNICATION INTERFACE\n");
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize Communication-Interface");
 	
 	cmd_handler_init();
-
-	spi_init(&myComInterface.data.spi);
-	
-	RESET_PIN_init();
-	RESET_PIN_pull_up();	
-	reset_device();
 
 	SET_MESSAGE(&myCmdInterface.message, CMD_VERSION_STR, CMD_VERSION_LEN);
 
@@ -684,16 +689,27 @@ void command_line_usage(void) {
 
 static void reset_device(void) {
 
-	MAIN_DEBUG_MSG("main() - RESETTING DEVICE !!!\n");
+	MAIN_DEBUG_MSG("reset_device() - RESETTING DEVICE !!!\n");
 
 	RESET_PIN_drive_low();
 	
 	u32 time_reference_ms = mstime_get_time();	
 	while (mstime_is_time_up(time_reference_ms, DEVICE_RESET_TIME_MS) == 0);
 	
-	RESET_PIN_pull_up();
+	RESET_PIN_no_pull();
 	
 	time_reference_ms = mstime_get_time();	
 	while (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIME_MS) == 0);
+	
+	time_reference_ms = mstime_get_time();	
+	while (REQUEST_PIN_is_low_level()) {
+					
+		usleep(5000);
+
+		if (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIMEOUT_MS) != 0) {
+			MAIN_DEBUG_MSG("reset_device() - Reset device has FAILED !!! --- (Timeout)\n");
+			break;
+		}
+	}
 }
 

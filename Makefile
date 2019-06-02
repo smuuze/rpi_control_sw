@@ -52,7 +52,8 @@ RM			:= rm
 MK			:= mkdir -p
 CP			:= cp
 MAKE_EXE		:= chmod ug=+rwx
-MAKE_FILE_RIGHTS	:= chmod ug=rw
+MAKE_FILE_RIGHTS	:= find . -type f -exec chmod ug+=rw {} \;
+MAKE_FOLDER_RIGHTS	:= find . -type d -exec chmod ug+rwx {} \;
 ECHO			:= echo
 
 RM_FLAGS		:= -rf
@@ -70,7 +71,7 @@ MSG_FINISH		:= --------------- Make done ---------------
 # --------- Application Properties (Target / Working dir / ...)
 
 VERSION_MAJOR		:= 3
-VERSION_MINOR		:= 3
+VERSION_MINOR		:= 4
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 OBJECT_DIRECTORY	:= obj
@@ -290,6 +291,13 @@ fw_update: stop_service
 	$(VERBOSE) $(ECHO) - Starting service
 	$(VERBOSE) /etc/init.d/$(TARGET_SERVICE) start
 	$(VERBOSE) $(ECHO) $(MSG_FINISH)
+
+fw_update_only: stop_service
+	$(VERBOSE) $(AVR_DUDE) -C $(AVR_DUDE_CFG_FILE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U flash:w:"$(AVR_DUDE_UPDATE_PATH)/$(AVR_DUDE_UPDATE_FILE)":$(AVR_DUDE_UPDATE_FORMAT)
+	$(VERBOSE) $(GPIO_MODE) $(GPIO_PIN_SCK) $(GPIO_MODE_SCK)
+	$(VERBOSE) $(GPIO_MODE) $(GPIO_PIN_MOSI) $(GPIO_MODE_MOSI)
+	$(VERBOSE) $(GPIO_MODE) $(GPIO_PIN_MISO) $(GPIO_MODE_MISO)
+	$(VERBOSE) $(ECHO) $(MSG_FINISH)
 	
 fuses: stop_service
 	$(VERBOSE) $(AVR_DUDE) -C $(AVR_DUDE_CFG_FILE) -c $(AVR_DUDE_PROGRAMMER) -p $(AVR_DUDE_MCU_NAME) $(AVR_DUDE_PORT) -b $(AVR_DUDE_BAUDRATE) -U lfuse:w:$(AVR_LFUSE):m -U hfuse:w:$(AVR_HFUSE):m -U efuse:w:$(AVR_EFUSE):m
@@ -305,9 +313,8 @@ create_user:
 
 git_update:
 	$(VERBOSE) git pull
-	$(VERBOSE) $(MAKE_FILE_RIGHTS) $(APP_PATH)/*.c
-	$(VERBOSE) $(MAKE_FILE_RIGHTS) $(APP_PATH)/*.h
-	$(VERBOSE) $(MAKE_FILE_RIGHTS) Makefile
+	$(VERBOSE) $(MAKE_FOLDER_RIGHTS)
+	$(VERBOSE) $(MAKE_FILE_RIGHTS)
 
 # --------- 
 

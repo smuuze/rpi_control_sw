@@ -27,7 +27,7 @@
 
 // ---- STATIC DATA -------------------------------------------------------------
 
-GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
+GPIO_INTERFACE_INCLUDE_INOUT(REQUEST_PIN)
 
 // ---- STATIC FUNCTIONS --------------------------------------------------------
 
@@ -53,7 +53,7 @@ static u8 cmd_handler_request_device(void) {
 		usleep(5000); // wait for HW to be ready
 	}
 	
-	REQUEST_PIN_pull_up();
+	REQUEST_PIN_no_pull();
 	
 	// wait for low level
 	time_reference = mstime_get_time(); 
@@ -77,8 +77,7 @@ void restore_last_file_pointer(FILE_INTERFACE* p_file) {
 }
 
 void cmd_handler_init(void) {
-	REQUEST_PIN_init();
-	REQUEST_PIN_pull_up();
+	
 }
 
 u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
