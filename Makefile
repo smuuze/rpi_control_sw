@@ -43,9 +43,9 @@ GPIO_MODE_SCK		:= alt0
 
 # See: http://www.engbedded.com/fusecalc/
 
-AVR_LFUSE		:= 0x7F
+AVR_LFUSE		:= 0xFF
 AVR_HFUSE		:= 0xD9
-AVR_EFUSE		:= 0xFF
+AVR_EFUSE		:= 0xFE
 
 
 RM			:= rm

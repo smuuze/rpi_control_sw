@@ -71,6 +71,8 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_fr
 GPIO_INTERFACE_BUILD_INOUT(RESET_PIN, GPIO_RESET_PIN_NUM)
 GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
 
+TIME_MGMN_BUILD_TIMER(RESET_TIMER)
+
 /*!
  *
  */
@@ -691,25 +693,27 @@ static void reset_device(void) {
 
 	MAIN_DEBUG_MSG("reset_device() - RESETTING DEVICE !!!\n");
 
-	RESET_PIN_drive_low();
+	RESET_PIN_drive_low();	
+	RESET_TIMER_start();	
 	
-	u32 time_reference_ms = mstime_get_time();	
-	while (mstime_is_time_up(time_reference_ms, DEVICE_RESET_TIME_MS) == 0);
+	while (RESET_TIMER_is_up(DEVICE_RESET_TIME_MS) == 0);
 	
-	RESET_PIN_no_pull();
+	RESET_PIN_no_pull();	
+	RESET_TIMER_start();
 	
-	time_reference_ms = mstime_get_time();	
-	while (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIME_MS) == 0);
+	while (RESET_TIMER_is_up(DEVICE_STARTUP_TIME_MS) == 0);
 	
-	time_reference_ms = mstime_get_time();	
+	RESET_TIMER_start();
 	while (REQUEST_PIN_is_low_level()) {
 					
 		usleep(5000);
 
-		if (mstime_is_time_up(time_reference_ms, DEVICE_STARTUP_TIMEOUT_MS) != 0) {
+		if (RESET_TIMER_is_up(DEVICE_STARTUP_TIMEOUT_MS) != 0) {
 			MAIN_DEBUG_MSG("reset_device() - Reset device has FAILED !!! --- (Timeout)\n");
 			break;
 		}
 	}
+	
+	MAIN_DEBUG_MSG("reset_device() - Device ready after %d ms\n", RESET_TIMER_elapsed());
 }
 

@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG				noDEBUG_MSG
+#define COMMAND_DEBUG_MSG				DEBUG_MSG
 
 #define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
@@ -29,18 +29,20 @@
 
 GPIO_INTERFACE_INCLUDE_INOUT(REQUEST_PIN)
 
+TIME_MGMN_BUILD_TIMER(request_timer)
+
 // ---- STATIC FUNCTIONS --------------------------------------------------------
 
 static u8 cmd_handler_request_device(void) {
 
-	u32 time_reference = mstime_get_time(); 
+	request_timer_start();
 	
 	// wait for high level if not present
 	while (REQUEST_PIN_is_low_level()) {
 
 		usleep(5000); // wait for HW to be ready
 
-		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
+		if (request_timer_is_up(CMD_ACTIVATE_TIMEOUT_MS) != 0) {
 			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for high-level of ready-pin has FAIELD !!! ---\n");
 			return ERR_COMMUNICATION;
 		}
@@ -48,20 +50,20 @@ static u8 cmd_handler_request_device(void) {
 	
 	REQUEST_PIN_drive_low();
 	
-	time_reference = mstime_get_time();
-	while (mstime_is_time_up(time_reference, CMD_REQUEST_TIME_MS) == 0) {	
+	request_timer_start();
+	while (request_timer_is_up(CMD_REQUEST_TIME_MS) == 0) {	
 		usleep(5000); // wait for HW to be ready
 	}
 	
 	REQUEST_PIN_no_pull();
 	
 	// wait for low level
-	time_reference = mstime_get_time(); 
+	request_timer_start();
 	while (REQUEST_PIN_is_high_level()) {
 
 		usleep(5000); // wait for HW to be ready
 
-		if (mstime_is_time_up(time_reference, CMD_ACTIVATE_TIMEOUT_MS) != 0) {
+		if (request_timer_is_up(CMD_ACTIVATE_TIMEOUT_MS) != 0) {
 			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for low-level of ready-pin has FAIELD !!! ---\n");
 			return ERR_COMMUNICATION;
 		}
@@ -376,6 +378,8 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 	switch (p_com->type) {
 		case SPI :
 
+			request_timer_start();
+			
 			// Check if there is a old answer pending on the other side
 			err_code = spi_transfer (
 				&p_com->data.spi,
@@ -398,6 +402,10 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 			}
 
 			p_cmd->command.length -= 1;
+			
+			while (request_timer_is_up(1) == 0) {
+			
+			}
 
 			if (p_cmd->answer.length != 0) {
 
