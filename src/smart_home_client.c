@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	char welcome_message[128];
-	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[3], myCmdInterface.answer.payload[2]);
+	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
 
 	MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
 
@@ -696,12 +696,12 @@ static void reset_device(void) {
 	RESET_PIN_drive_low();	
 	RESET_TIMER_start();	
 	
-	while (RESET_TIMER_is_up(DEVICE_RESET_TIME_MS) == 0);
+	while (RESET_TIMER_is_up(DEVICE_RESET_TIME_MS) == 0) { usleep(5000); }
 	
 	RESET_PIN_no_pull();	
 	RESET_TIMER_start();
 	
-	while (RESET_TIMER_is_up(DEVICE_STARTUP_TIME_MS) == 0);
+	while (RESET_TIMER_is_up(DEVICE_STARTUP_TIME_MS) == 0) { usleep(5000); }
 	
 	RESET_TIMER_start();
 	while (REQUEST_PIN_is_low_level()) {
