@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG				DEBUG_MSG
+#define COMMAND_DEBUG_MSG				noDEBUG_MSG
 
 #define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
