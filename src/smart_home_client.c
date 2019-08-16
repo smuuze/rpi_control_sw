@@ -192,6 +192,7 @@ int main(int argc, char* argv[]) {
 	MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
 
 	while (1) {
+		/*  */
 
 		// --- Initialize MQTT Interface
 		MAIN_DEBUG_MSG("main() - INITIALIZE MQTT INTERFACE\n");
