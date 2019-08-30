@@ -46,7 +46,13 @@
 
 // -------- STATIC FUNCTION PROTOTYPES --------------------------------------------------
 
-static void reset_device(void);
+static void main_reset_control_board(void);
+
+
+/*!
+ *
+ */
+static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface, GPIO_INTERFACE* p_pin);
 
 /*!
  *
@@ -153,83 +159,71 @@ int main(int argc, char* argv[]) {
 		return err_code;
 	}
 
-	spi_init(&myComInterface.data.spi);
-
-	REQUEST_PIN_init();
-	REQUEST_PIN_no_pull();
-
-	RESET_PIN_init();
-	RESET_PIN_no_pull();
-
-	reset_device();
-
-	MAIN_DEBUG_MSG("main() - INITIALIZE COMMUNICATION INTERFACE\n");
-	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize Communication-Interface");
-	
-	cmd_handler_init();
-
-	SET_MESSAGE(&myCmdInterface.message, CMD_VERSION_STR, CMD_VERSION_LEN);
-
-	if (cmd_handler_prepare_command(&myCmdInterface) != NO_ERR) {
-		MAIN_DEBUG_MSG("main() - Set Command-Interface to inactive - preparing command has FAILED !!! ---  \n");
-		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Set Command-Interface to inactive - preparing command has FAILED");
-		myCmdInterface.is_active = 0;
-
-	} else if (cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin) != NO_ERR) {
-		MAIN_DEBUG_MSG("main() - Set Command-Interface to inactive - sending command has FAILED !!! ---  \n");
-		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Set Command-Interface to inactive - sending command has FAILED");
-		myCmdInterface.is_active = 0;
-
-	} else if (cmd_handler_receive_answer(&myCmdInterface, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
-		MAIN_DEBUG_MSG("main() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
-		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Set Command-Interface to inactive - receiving answer has FAILED");
-		myCmdInterface.is_active = 0;
-	}
+	myMqttInterface.connection_lost = 1;
+	myCmdInterface.is_active = 0;
 
 	char welcome_message[128];
-	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
-
-	MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
 
 	while (1) {
-		/*  */
 
-		// --- Initialize MQTT Interface
-		MAIN_DEBUG_MSG("main() - INITIALIZE MQTT INTERFACE\n");
-		MAIN_DEBUG_MSG("       - Host-Addr: \"%s\"\n", myMqttInterface.host_address);
-		MAIN_DEBUG_MSG("       - Client-ID: \"%s\"\n", myMqttInterface.client_id);
+		if (myCmdInterface.is_active == 0) {
+			
+			spi_init(&myComInterface.data.spi);
+			
+			cmd_handler_init();
 
-		LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize MQTT-Interface (Host-Addr: %s / Client-ID: %s)", myMqttInterface.host_address, myMqttInterface.client_id);
-		SET_MESSAGE(&myMqttInterface.message, welcome_message, string_length(welcome_message));
+			REQUEST_PIN_init();
+			REQUEST_PIN_no_pull();
 
-		myMqttInterface.connection_lost = 1;
+			RESET_PIN_init();
+			RESET_PIN_no_pull();
 
-		if ((err_code = mqtt_init(&myMqttInterface)) != NO_ERR) {
-		
-			MAIN_DEBUG_MSG("main() - Initializing MQTT-Client has FAILED !!! - error-code = %d\n", err_code);
-			LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Initializing MQTT-Client has FAILED !!! --- (error-code = %d)", err_code);
+			main_reset_control_board();
+			main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface, &is_busy_pin);	
+			sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
 
-		} else 	if ((err_code = mqtt_connect(&myMqttInterface)) != NO_ERR) {
-
-			MAIN_DEBUG_MSG("main() - Connect to MQTT-Host has FAILED !!! - error-code = %d\n", err_code);
-			LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connect to MQTT-Host has FAILED !!! --- (error-code = %d)", err_code);
-
-		} else if ((err_code = mqtt_send_message(&myMqttInterface, &myMqttInterface.message)) != NO_ERR) {
-
-			MAIN_DEBUG_MSG("main() - Sending MQTT-Welcome-Message has FAILED !!! - error-code = %d\n", err_code);
-			LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Sending MQTT-Welcome-Message has FAILED !!! --- (error-code = %d)", err_code);
-
-		} else {
-
-			MAIN_DEBUG_MSG("main() - Connection to MQTT-Broker has benn established\n");
-			LOG_MSG(ERR_LEVEL_INFO, &myCfgInterface.log_file, "Connection to MQTT-Broker has been established");
-
-			myMqttInterface.connection_lost = 0;
-
-			mySchedulingInterface.event.reference = mstime_get_time();
-			mySchedulingInterface.report.reference = mstime_get_time();
-			mySchedulingInterface.configuration.reference = mstime_get_time();
+			MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
 		}
+
+		if (myMqttInterface.connection_lost == 1) {
+
+			// --- Initialize MQTT Interface
+			MAIN_DEBUG_MSG("main() - INITIALIZE MQTT INTERFACE\n");
+			MAIN_DEBUG_MSG("       - Host-Addr: \"%s\"\n", myMqttInterface.host_address);
+			MAIN_DEBUG_MSG("       - Client-ID: \"%s\"\n", myMqttInterface.client_id);
+
+			LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize MQTT-Interface (Host-Addr: %s / Client-ID: %s)", myMqttInterface.host_address, myMqttInterface.client_id);
+			SET_MESSAGE(&myMqttInterface.message, welcome_message, string_length(welcome_message));
+
+			myMqttInterface.connection_lost = 1;
+
+			if ((err_code = mqtt_init(&myMqttInterface)) != NO_ERR) {
+			
+				MAIN_DEBUG_MSG("main() - Initializing MQTT-Client has FAILED !!! - error-code = %d\n", err_code);
+				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Initializing MQTT-Client has FAILED !!! --- (error-code = %d)", err_code);
+
+			} else 	if ((err_code = mqtt_connect(&myMqttInterface)) != NO_ERR) {
+
+				MAIN_DEBUG_MSG("main() - Connect to MQTT-Host has FAILED !!! - error-code = %d\n", err_code);
+				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connect to MQTT-Host has FAILED !!! --- (error-code = %d)", err_code);
+
+			} else if ((err_code = mqtt_send_message(&myMqttInterface, &myMqttInterface.message)) != NO_ERR) {
+
+				MAIN_DEBUG_MSG("main() - Sending MQTT-Welcome-Message has FAILED !!! - error-code = %d\n", err_code);
+				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Sending MQTT-Welcome-Message has FAILED !!! --- (error-code = %d)", err_code);
+
+			} else {
+
+				MAIN_DEBUG_MSG("main() - Connection to MQTT-Broker has benn established\n");
+				LOG_MSG(ERR_LEVEL_INFO, &myCfgInterface.log_file, "Connection to MQTT-Broker has been established");
+
+				myMqttInterface.connection_lost = 0;
+
+				mySchedulingInterface.event.reference = mstime_get_time();
+				mySchedulingInterface.report.reference = mstime_get_time();
+				mySchedulingInterface.configuration.reference = mstime_get_time();
+			}
+		}		
 
 		while (myMqttInterface.connection_lost == 0) {
 
@@ -471,31 +465,28 @@ int main(int argc, char* argv[]) {
 				LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Connection to Control-Board has been lost !!! ---");
 
 				myCmdInterface.is_active = 0;
+				break;
 			}
 			
 			if (myMqttInterface.connection_lost != 0) {
 				MAIN_DEBUG_MSG("main() - MQTT-CONNECTION LOST - ! - ! - ! -\n");
 				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connection to MQTT-Broker lost!");
+				break;
 			}
-		}		
-			
-		if (myMqttInterface.connection_lost != 0) {
-			//LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Try reconnecting to MQTT-Broker!");
-
-			MQTTClient_disconnect(myMqttInterface.client, 10000);
-			MQTTClient_destroy(&myMqttInterface.client);
-
-			u32 time_reference = mstime_get_time();
-			while (mstime_is_time_up(time_reference, MQTT_CONNECTION_LOST_TIMEOUT_MS) == 0) {	
-				usleep(500000);
-			}
-			
-		} else {
-		
-			MAIN_DEBUG_MSG("mein() - Fatal Error - Exit Program");
-			LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Fatal Error - Exit Program");
-			break;
 		}
+	}		
+			
+	if (myMqttInterface.connection_lost != 0) {
+		//LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Try reconnecting to MQTT-Broker!");
+
+		MQTTClient_disconnect(myMqttInterface.client, 10000);
+		MQTTClient_destroy(&myMqttInterface.client);
+
+		u32 time_reference = mstime_get_time();
+		while (mstime_is_time_up(time_reference, MQTT_CONNECTION_LOST_TIMEOUT_MS) == 0) {	
+			usleep(500000);
+		}
+			
 	}
 
 	spi_deinit(&myComInterface.data.spi);
@@ -690,7 +681,7 @@ void command_line_usage(void) {
 }
 
 
-static void reset_device(void) {
+static void main_reset_control_board(void) {
 
 	MAIN_DEBUG_MSG("reset_device() - RESETTING DEVICE !!!\n");
 
@@ -718,3 +709,28 @@ static void reset_device(void) {
 	MAIN_DEBUG_MSG("reset_device() - Device ready after %d ms\n", RESET_TIMER_elapsed());
 }
 
+static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface, GPIO_INTERFACE* p_pin) {
+		
+	p_cmdInterface->is_active = 1;
+
+	MAIN_DEBUG_MSG("main_connect_control_board() - INITIALIZE COMMUNICATION INTERFACE\n");
+	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Initialize Communication-Interface");
+
+	SET_MESSAGE(&p_cmdInterface->message, CMD_VERSION_STR, CMD_VERSION_LEN);
+
+	if (cmd_handler_prepare_command(p_cmdInterface) != NO_ERR) {
+		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - preparing command has FAILED !!! ---  \n");
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - preparing command has FAILED");
+		p_cmdInterface->is_active = 0;
+
+	} else if (cmd_handler_send_command(p_cmdInterface, p_comInterface, p_pin) != NO_ERR) {
+		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - sending command has FAILED !!! ---  \n");
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - sending command has FAILED");
+		p_cmdInterface->is_active = 0;
+
+	} else if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, p_pin, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
+		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - receiving answer has FAILED");
+		p_cmdInterface->is_active = 0;
+	}
+}
