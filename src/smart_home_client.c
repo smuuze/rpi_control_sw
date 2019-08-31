@@ -52,7 +52,7 @@ static void main_reset_control_board(void);
 /*!
  *
  */
-static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface, GPIO_INTERFACE* p_pin);
+static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface);
 
 /*!
  *
@@ -140,25 +140,6 @@ int main(int argc, char* argv[]) {
 
 	gpio_initialize(&myGpioInterface);
 
-	GPIO_INTERFACE is_busy_pin = {
-		GPIO_IS_BUSY_PIN_NUM, //u8 pin_num ;
-		0,  // u8 is_initialized;
-		1, // u8 is_input;
-		GPIO_OFF, //u8 is_high_level;
-		1, //u8 match_event_level;
-		0, //u8 event_rised;
-		0, //u32 sample_time_reference;
-		5, // u32 sample_timeout;
-		0, //u32 event_ref_time;
-		0, //u32 event_timeout;
-	};
-
-	err_code = gpio_initialize(&is_busy_pin);
-	if (err_code != NO_ERR ) {
-		LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- Initializing Busy-Pin has FAILED !!! --- (error-code = %d)", err_code);
-		return err_code;
-	}
-
 	myMqttInterface.connection_lost = 1;
 	myCmdInterface.is_active = 0;
 
@@ -173,13 +154,13 @@ int main(int argc, char* argv[]) {
 			cmd_handler_init();
 
 			REQUEST_PIN_init();
-			REQUEST_PIN_no_pull();
+			REQUEST_PIN_pull_up();
 
 			RESET_PIN_init();
-			RESET_PIN_no_pull();
+			RESET_PIN_pull_up();
 
 			main_reset_control_board();
-			main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface, &is_busy_pin);	
+			main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface);	
 			sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
 
 			MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
@@ -277,10 +258,10 @@ int main(int argc, char* argv[]) {
 						u8 cmd_counter = 0;
 
 						do {
-							if ((err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin)) != NO_ERR) {
+							if ((err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Prepare Com-Command has FAILED !!! --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 
-							} else if ((err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS)) != NO_ERR) {
+							} else if ((err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Com-Command has FAILED !!! --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 
 							} else if ((err_code = cmd_handler_get_error_code(&myCmdInterface)) != NO_ERR) {
@@ -316,14 +297,14 @@ int main(int argc, char* argv[]) {
 					
 					if ( (cmd_handler_is_communication_command(&myCmdInterface) != 0) && (myCmdInterface.is_active != 0) ) {
 					
-						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface, &is_busy_pin);
+						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface);
 						if (err_code != NO_ERR) {
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Sending Report-Command has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 							restore_last_file_pointer(&myCmdInterface.report_file);
 							break;
 						}
 
-						err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS);
+						err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS);
 						if (err_code != NO_ERR) {
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Receive Report-Answer has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 							restore_last_file_pointer(&myCmdInterface.report_file);
@@ -422,14 +403,14 @@ int main(int argc, char* argv[]) {
 					memcpy(cmd_match.command.payload, myCmdInterface.command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
 					cmd_match.command.length = myCmdInterface.command.length;
 
-					err_code = cmd_handler_send_command(&cmd_match, &myComInterface, &is_busy_pin);
+					err_code = cmd_handler_send_command(&cmd_match, &myComInterface);
 					if (err_code != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Sending Event-Command has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 						restore_last_file_pointer(&myCmdInterface.report_file);
 						continue;
 					}
 
-					err_code = cmd_handler_receive_answer(&cmd_match, &myComInterface, &is_busy_pin, CMD_RX_ANSWER_TIMEOUT_MS);
+					err_code = cmd_handler_receive_answer(&cmd_match, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS);
 					if (err_code != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Receiving Event-Answer has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 						restore_last_file_pointer(&myCmdInterface.report_file);
@@ -690,7 +671,7 @@ static void main_reset_control_board(void) {
 	
 	while (RESET_TIMER_is_up(DEVICE_RESET_TIME_MS) == 0) { usleep(5000); }
 	
-	RESET_PIN_no_pull();	
+	RESET_PIN_pull_up();	
 	RESET_TIMER_start();
 	
 	while (RESET_TIMER_is_up(DEVICE_STARTUP_TIME_MS) == 0) { usleep(5000); }
@@ -709,7 +690,7 @@ static void main_reset_control_board(void) {
 	MAIN_DEBUG_MSG("reset_device() - Device ready after %d ms\n", RESET_TIMER_elapsed());
 }
 
-static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface, GPIO_INTERFACE* p_pin) {
+static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface) {
 		
 	p_cmdInterface->is_active = 1;
 
@@ -723,12 +704,12 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - preparing command has FAILED");
 		p_cmdInterface->is_active = 0;
 
-	} else if (cmd_handler_send_command(p_cmdInterface, p_comInterface, p_pin) != NO_ERR) {
+	} else if (cmd_handler_send_command(p_cmdInterface, p_comInterface) != NO_ERR) {
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - sending command has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - sending command has FAILED");
 		p_cmdInterface->is_active = 0;
 
-	} else if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, p_pin, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
+	} else if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - receiving answer has FAILED");
 		p_cmdInterface->is_active = 0;

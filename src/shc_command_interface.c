@@ -55,7 +55,7 @@ static u8 cmd_handler_request_device(void) {
 		usleep(5000); // wait for HW to be ready
 	}
 	
-	REQUEST_PIN_no_pull();
+	REQUEST_PIN_pull_up();
 	
 	// wait for low level
 	request_timer_start();
@@ -362,7 +362,7 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 	return NO_ERR;
 }
 
-u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio) {
+u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 
 	if (p_cmd->command.length == 0) {
 		return ERR_INVALID_ARGUMENT;
@@ -432,7 +432,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO
 	return err_code;
 }
 
-u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio, u32 timeout_ms) {
+u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u32 timeout_ms) {
 	
 	u8 err_code = cmd_handler_request_device();
 	if (err_code != NO_ERR) {

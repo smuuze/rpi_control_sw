@@ -104,12 +104,12 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output);
 /*!
  *
  */
-u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio);
+u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com);
 
 /*!
  *
  */
-u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, GPIO_INTERFACE* p_gpio, u32 timeout_ms);
+u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u32 timeout_ms);
 
 /*!
  *
