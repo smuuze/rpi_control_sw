@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG				noDEBUG_MSG
+#define COMMAND_DEBUG_MSG				DEBUG_MSG
 
 #define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
@@ -55,7 +55,7 @@ static u8 cmd_handler_request_device(void) {
 		usleep(5000); // wait for HW to be ready
 	}
 	
-	REQUEST_PIN_pull_up();
+	REQUEST_PIN_no_pull();
 	
 	// wait for low level
 	request_timer_start();

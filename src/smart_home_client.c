@@ -670,13 +670,14 @@ static void main_reset_control_board(void) {
 	RESET_TIMER_start();	
 	
 	while (RESET_TIMER_is_up(DEVICE_RESET_TIME_MS) == 0) { usleep(5000); }
-	
-	RESET_PIN_pull_up();	
+
+	REQUEST_PIN_no_pull();
+	RESET_PIN_pull_up();
+
 	RESET_TIMER_start();
 	
 	while (RESET_TIMER_is_up(DEVICE_STARTUP_TIME_MS) == 0) { usleep(5000); }
 	
-	RESET_TIMER_start();
 	while (REQUEST_PIN_is_low_level()) {
 					
 		usleep(5000);
