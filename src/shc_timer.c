@@ -35,12 +35,5 @@ u8 mstime_is_time_up(u32 reference_time, u32 interval_time) {
 }
 
 u32 mstime_elapsed(u32 reference_time) {
-
-	u32 time = mstime_get_time();
-
-	if (time < reference_time) {
-		return (TIMER_MAX_TIME_U32 - reference_time) + time;
-	}
-
-	return time - reference_time;
+	return mstime_get_time() - reference_time;
 }

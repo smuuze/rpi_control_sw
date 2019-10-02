@@ -17,13 +17,19 @@
 #define TIME_MGMN_BUILD_TIMER(name)										\
 														\
 	static u32 _##name##_time_reference = 0;								\
+	static u8  _##name##_status = 0;									\
 														\
 	void name##_start(void) {										\
 		_##name##_time_reference = mstime_get_time();							\
+		_##name##_status = 1;										\
 	}													\
 														\
 	void name##_stop(void) {										\
-		_##name##_time_reference = 0;									\
+		_##name##_status = 0;										\
+	}													\
+														\
+	u8 name##_is_active(void) {										\
+		return _##name##_status != 0 ? 1 : 0;								\
 	}													\
 														\
 	u8 name##_is_up(u32 time_interval) {									\

@@ -42,6 +42,7 @@ typedef struct {
 	u8 connection_lost;	
 	u16 timeout_ms;
 	u8 quality_of_service;
+	u8 initialized;
 	
 	char host_address[MQTT_HOST_ADDRESS_STRING_LENGTH];
 	char topic_name[MQTT_TOPIC_NAME_STRING_LENGTH];
