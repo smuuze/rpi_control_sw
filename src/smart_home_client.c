@@ -73,12 +73,6 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 void command_line_usage(void);
 
 
-/*!
- *
- */
-void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_from);
-
-
 // -------- STATIC DATA -----------------------------------------------------------------
 
 
@@ -513,12 +507,12 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 		}
 	}
 
-	char path[64];
+	char path[128];
 	sprintf(path, "%s", p_cfg_interface->cfg_file.path);
 
-	FILE* config_file_handle = fopen((const char*)path, "r");
+	FILE* config_file_handle = fopen((const char*)p_cfg_interface->cfg_file.path, "r");
 	if (config_file_handle == NULL) {
-		MAIN_CFG_DEBUG_MSG("--- Open Configuration-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
+		MAIN_CFG_DEBUG_MSG("--- Open Configuration-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_cfg_interface->cfg_file.path,  EXIT_FAILURE);
 		return ERR_FILE_OPEN;
 	}
 
@@ -724,22 +718,22 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 
 	if ((err_code = mqtt_init(p_mqttInterface)) != NO_ERR) {
 			
-		MAIN_DEBUG_MSG("main() - Initializing MQTT-Client has FAILED !!! - error-code = %d\n", err_code);
+		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Initializing MQTT-Client has FAILED !!! - error-code = %d\n", err_code);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Initializing MQTT-Client has FAILED !!! --- (error-code = %d)", err_code);
 
 	} else 	if ((err_code = mqtt_connect(p_mqttInterface)) != NO_ERR) {
 
-		MAIN_DEBUG_MSG("main() - Connect to MQTT-Host has FAILED !!! - error-code = %d\n", err_code);
+		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Connect to MQTT-Host has FAILED !!! - error-code = %d\n", err_code);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Connect to MQTT-Host has FAILED !!! --- (error-code = %d)", err_code);
 
 	} else if ((err_code = mqtt_send_message(&myMqttInterface, &p_mqttInterface->message)) != NO_ERR) {
 
-		MAIN_DEBUG_MSG("main() - Sending MQTT-Welcome-Message has FAILED !!! - error-code = %d\n", err_code);
+		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Sending MQTT-Welcome-Message has FAILED !!! - error-code = %d\n", err_code);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Sending MQTT-Welcome-Message has FAILED !!! --- (error-code = %d)", err_code);
 
 	} else {
 
-		MAIN_DEBUG_MSG("main() - Connection to MQTT-Broker has benn established\n");
+		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Connection to MQTT-Broker has benn established\n");
 		LOG_MSG(ERR_LEVEL_INFO, &p_cfgInterface->log_file, "Connection to MQTT-Broker has been established");
 
 		p_mqttInterface->connection_lost = 0;

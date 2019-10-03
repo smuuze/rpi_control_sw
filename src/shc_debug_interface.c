@@ -31,9 +31,9 @@
 /*!
  *
  */
-void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER* p_msg_from) {
+void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER_BIG* p_msg_from) {
 	
-	char path[64];
+	char path[128];
 	sprintf(path, "%s", p_file->path);
 	//LOG_DEBUG_MSG("LOG-DEBUG: Using Log-File: %s \n", path);
 	

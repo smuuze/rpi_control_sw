@@ -20,7 +20,7 @@
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
 
-#define MQTT_DEBUG_MSG				noDEBUG_MSG
+#define MQTT_DEBUG_MSG				DEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 

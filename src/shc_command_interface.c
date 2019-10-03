@@ -241,7 +241,7 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
 
-	char path[64];
+	char path[128];
 	sprintf(path, "%s", p_cmd->command_file.path);
 
 	FILE* command_file_handle = fopen((const char*)path, "r");
@@ -284,7 +284,7 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
 
-	char path[64];
+	char path[128];
 	sprintf(path, "%s", p_cmd->execution_file.path);
 
 	p_cmd->execution_file.handle = fopen((const char*)path, "r");

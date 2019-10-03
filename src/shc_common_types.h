@@ -55,6 +55,14 @@ typedef struct {
 /*!
  *
  */
+typedef struct {
+	u8 length;
+	u8 payload[GENERAL_STRING_BIG_BUFFER_MAX_LENGTH]; 
+} STRING_BUFFER_BIG;
+
+/*!
+ *
+ */
 typedef enum {
 	SPI = 0x00,
 	I2C,
