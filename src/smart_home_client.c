@@ -185,6 +185,8 @@ int main(int argc, char* argv[]) {
 
 			usleep(50000); // reduce cpu-load
 
+			mqtt_keep_alive();
+
 			if (mstime_is_time_up(mySchedulingInterface.configuration.reference, mySchedulingInterface.configuration.interval) != 0) {
 				mySchedulingInterface.configuration.reference = mstime_get_time();
 

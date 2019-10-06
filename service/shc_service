@@ -15,7 +15,7 @@ set -e
 
 PIDFILE=/var/run/shcd.pid
 DAEMON=/usr/sbin/shcd
-RUN_USER_ID=1001
+RUN_USER_ID=1006
 
 # /etc/init.d/smarthomeclient: start and stop the mosquitto MQTT message broker
 

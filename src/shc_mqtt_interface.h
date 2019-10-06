@@ -72,6 +72,11 @@ u8 mqtt_send_message(MQTT_INTERFACE* p_mqtt_interface, STRING_BUFFER* p_msg_from
 /*!
  *
  */
+void mqtt_keep_alive(void);
+
+/*!
+ *
+ */
 void connectionLost_Callback(void *context, char* cause);
 
 /*!
