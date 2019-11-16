@@ -114,6 +114,7 @@ CSRCS += $(APP_PATH)/shc_gpio_interface.c
 CSRCS += $(APP_PATH)/shc_mqtt_interface.c
 CSRCS += $(APP_PATH)/shc_qeue_interface.c
 CSRCS += $(APP_PATH)/shc_spi_interface.c
+CSRCS += $(APP_PATH)/shc_lcd_interface.c
 
 
 # --------- Defines

@@ -15,6 +15,7 @@
 #include "shc_mqtt_interface.h"
 #include "shc_gpio_interface.h"
 #include "shc_debug_interface.h"
+#include "shc_lcd_interface.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -143,6 +144,8 @@ int main(int argc, char* argv[]) {
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize GPIO-Interface");
 
 	gpio_initialize(&myGpioInterface);
+
+	lcd_init();
 
 	myMqttInterface.initialized = 0;
 	myMqttInterface.connection_lost = 1;

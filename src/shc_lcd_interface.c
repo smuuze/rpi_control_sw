@@ -24,7 +24,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define LCD_DEBUG_MSG				noDEBUG_MSG
+#define LCD_DEBUG_MSG				DEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -39,6 +39,8 @@ GPIO_INTERFACE_BUILD_INOUT(LCD_D7, LCD_PIN_NUMBER_D7)
 
 void lcd_init(void) {
 	
+	LCD_DEBUG_MSG("lcd_init()\n");
+
 	LCD_RS_init();
 	LCD_EN_init();
 
@@ -57,6 +59,6 @@ void lcd_deinit(void) {
 	
 }
 
-u8 lcd_write_line(unisgned char* message) {
+void lcd_write_line(unisgned char* message) {
 
 }
