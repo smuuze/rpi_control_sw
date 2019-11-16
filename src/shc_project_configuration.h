@@ -61,4 +61,13 @@
 
 #define config_MAX_LENGTH_OF_FILE_LINE		512
 
+// -------- LCD-Display -----------------------------------------------------------------
+
+#define LCD_PIN_NUMBER_RS			19
+#define LCD_PIN_NUMBER_EN			20
+#define LCD_PIN_NUMBER_D4			12
+#define LCD_PIN_NUMBER_D5			16
+#define LCD_PIN_NUMBER_D6			20
+#define LCD_PIN_NUMBER_D7			21
+
 #endif // _SHC_PROJECT_CONFIGURATION_H_
