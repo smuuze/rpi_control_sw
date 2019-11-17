@@ -146,6 +146,7 @@ int main(int argc, char* argv[]) {
 	gpio_initialize(&myGpioInterface);
 
 	lcd_init();
+	lcd_write_line("Hello SHC !");
 
 	myMqttInterface.initialized = 0;
 	myMqttInterface.connection_lost = 1;

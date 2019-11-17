@@ -63,11 +63,13 @@
 
 // -------- LCD-Display -----------------------------------------------------------------
 
-#define LCD_PIN_NUMBER_RS			19
-#define LCD_PIN_NUMBER_EN			20
-#define LCD_PIN_NUMBER_D4			12
-#define LCD_PIN_NUMBER_D5			16
-#define LCD_PIN_NUMBER_D6			20
-#define LCD_PIN_NUMBER_D7			21
+#define LCD_NUM_LINES				2
+#define LCD_NUM_CHARS				16
+#define LCD_PIN_NUMBER_RS			24 /* 19 */
+#define LCD_PIN_NUMBER_EN			25 /* 26 */
+#define LCD_PIN_NUMBER_D4			26 /* 12 */
+#define LCD_PIN_NUMBER_D5			27 /* 16 */
+#define LCD_PIN_NUMBER_D6			28 /* 20 */
+#define LCD_PIN_NUMBER_D7			29 /* 21 */
 
 #endif // _SHC_PROJECT_CONFIGURATION_H_

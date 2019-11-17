@@ -17,6 +17,6 @@ void lcd_init(void);
 
 void lcd_deinit(void);
 
-void lcd_write_line(unisgned char* message);
+void lcd_write_line(char* message);
 
 #endif // _SHC_LCD_INTERFACE_H_
