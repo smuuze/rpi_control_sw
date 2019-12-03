@@ -87,6 +87,10 @@ TARGET			:= SmartHomeClient
 TARGET_DAEMON		:= shcd
 TARGET_SERVICE		:= shc_service
 
+# --------- Modules
+
+MODULES			=
+MODULES 		+= LCD
 
 # --------- Include Path
 
@@ -114,8 +118,11 @@ CSRCS += $(APP_PATH)/shc_gpio_interface.c
 CSRCS += $(APP_PATH)/shc_mqtt_interface.c
 CSRCS += $(APP_PATH)/shc_qeue_interface.c
 CSRCS += $(APP_PATH)/shc_spi_interface.c
-CSRCS += $(APP_PATH)/shc_lcd_interface.c
 
+ifneq '' '$(findstring LCD,$(MODULES))'
+CSRCS += $(APP_PATH)/shc_lcd_interface.c
+DEFS += -DLCD_AVAILABLE=1
+endif
 
 # --------- Defines
 

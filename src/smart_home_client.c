@@ -82,6 +82,7 @@ GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
 
 TIME_MGMN_BUILD_TIMER(RESET_TIMER)
 TIME_MGMN_BUILD_TIMER(MQTT_CONNECT_TIMER)
+TIME_MGMN_BUILD_TIMER(BOARD_CONNECT_TIMER)
 TIME_MGMN_BUILD_TIMER(REPORT_TIMER)
 
 /*!
@@ -138,23 +139,28 @@ int main(int argc, char* argv[]) {
 		return err_code;
 	}
 
+	char welcome_message[128];
+	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
+	MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
+	
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting SmartHomeClient Deamon v%d.%d", VERSION_MAJOR, VERSION_MINOR);
+	
+	LCD_PRINTF("Welcome to:");
+	LCD_PRINTF("SHC v%d.%d", VERSION_MAJOR, VERSION_MINOR);	
 
 	MAIN_DEBUG_MSG("main() - INITIALIZE GPIO INTERFACE\n");
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize GPIO-Interface");
+	LCD_PRINTF("INIT: GPIO");
 
 	gpio_initialize(&myGpioInterface);
 
-	lcd_init();
-	lcd_write_line("Welcome to:");
-	lcd_write_line("SHC v3.8");
+	LCD_PRINTF("... OK");
 
 	myMqttInterface.initialized = 0;
 	myMqttInterface.connection_lost = 1;
 
 	myCmdInterface.is_active = 0;
 
-	char welcome_message[128];
 
 	REPORT_TIMER_start();
 
@@ -162,23 +168,8 @@ int main(int argc, char* argv[]) {
 
 		usleep(50000); // reduce cpu-load
 
-		if (myCmdInterface.is_active == 0) {
-			
-			spi_init(&myComInterface.data.spi);
-			
-			cmd_handler_init();
-
-			REQUEST_PIN_init();
-			REQUEST_PIN_pull_up();
-
-			RESET_PIN_init();
-			RESET_PIN_pull_up();
-
-			main_reset_control_board();
-			main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface);	
-			sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
-
-			MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
+		if (myCmdInterface.is_active == 0) {			
+			main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface);
 		}
 
 		if (myMqttInterface.connection_lost) {
@@ -427,6 +418,7 @@ int main(int argc, char* argv[]) {
 			if ((myCmdInterface.is_active != 0) && (myCmdInterface.fail_counter > CMD_MAXIMUM_COM_FAIL_COUNT - 1)) {
 				MAIN_DEBUG_MSG("main() - Connection to Control-Board has been lost !!! ---\n");
 				LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Connection to Control-Board has been lost !!! ---");
+				LCD_PRINTF("Board lost!!!");
 
 				myCmdInterface.is_active = 0;
 				break;
@@ -435,6 +427,7 @@ int main(int argc, char* argv[]) {
 			if (myMqttInterface.connection_lost != 0) {
 				MAIN_DEBUG_MSG("main() - MQTT-CONNECTION LOST - ! - ! - ! -\n");
 				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connection to MQTT-Broker lost!");
+				LCD_PRINTF("Mqtt lost!!!");
 				break;
 			}
 		}
@@ -501,6 +494,8 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 	u8 i = 0;
 	for ( ; i < argc; i++) {
 
+		MAIN_CFG_DEBUG_MSG("command_line_parser() - Parsing cli-argument: %s\n", argv[i]);
+
 		if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CFG_FILE, string_length(COMMAND_LINE_ARGUMENT_CFG_FILE)) == 0) {
 
 			if (i + 1 >= argc) {
@@ -511,6 +506,16 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 			memcpy(p_cfg_interface->cfg_file.path, argv[i + 1], string_length(argv[i + 1]));
 
 			MAIN_CFG_DEBUG_MSG("Using Config-File: %s\n", p_cfg_interface->cfg_file.path);
+			
+			// do not process the parameter as a new argument
+			i += 1;
+
+		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_LCD, string_length(COMMAND_LINE_ARGUMENT_LCD)) == 0) {
+			MAIN_CFG_DEBUG_MSG("command_line_parser() - Enabling LCD\n");
+			lcd_set_enabled(1);
+
+		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CONTROLLER, string_length(COMMAND_LINE_ARGUMENT_CONTROLLER)) == 0) {
+			MAIN_CFG_DEBUG_MSG("command_line_parser() - Enabling Control-Board\n");
 		}
 	}
 
@@ -670,28 +675,60 @@ static void main_reset_control_board(void) {
 
 static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface) {
 		
+	if (BOARD_CONNECT_TIMER_is_active()) {
+
+		if (BOARD_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
+			//MAIN_DEBUG_MSG("main_connect_control_board() - Waiting for BOARD_CONNECTION_INTERVAL_TIMEOUT_MS\n");
+			return;
+		}
+	}
+	
+	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize SPI-Interface");
+	LCD_PRINTF("INIT: SPI");
+
+	spi_init(&myComInterface.data.spi);
+
+	LCD_PRINTF("... OK");
+			
+	cmd_handler_init();
+
+	REQUEST_PIN_init();
+	REQUEST_PIN_pull_up();
+
+	RESET_PIN_init();
+	RESET_PIN_pull_up();
+
+	main_reset_control_board();
+
 	p_cmdInterface->is_active = 1;
 
 	MAIN_DEBUG_MSG("main_connect_control_board() - INITIALIZE COMMUNICATION INTERFACE\n");
 	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Initialize Communication-Interface");
+	LCD_PRINTF("INIT: BOARD");
 
 	SET_MESSAGE(&p_cmdInterface->message, CMD_VERSION_STR, CMD_VERSION_LEN);
 
 	if (cmd_handler_prepare_command(p_cmdInterface) != NO_ERR) {
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - preparing command has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - preparing command has FAILED");
+		LCD_PRINTF("err: PREPARE");
 		p_cmdInterface->is_active = 0;
 
 	} else if (cmd_handler_send_command(p_cmdInterface, p_comInterface) != NO_ERR) {
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - sending command has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - sending command has FAILED");
+		LCD_PRINTF("err: SEND");
 		p_cmdInterface->is_active = 0;
 
 	} else if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - receiving answer has FAILED");
+		LCD_PRINTF("err: RECEIVE");
 		p_cmdInterface->is_active = 0;
+
 	}
+			
+	BOARD_CONNECT_TIMER_start();
 }
 
 static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFACE* p_cfgInterface) {
@@ -700,18 +737,12 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 		return;
 	}
 
-	if (p_mqttInterface->initialized) {
-
-		if (!MQTT_CONNECT_TIMER_is_active()) {
-			MQTT_CONNECT_TIMER_start();
-		}
+	if (MQTT_CONNECT_TIMER_is_active()) {
 
 		if (MQTT_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
 			//MAIN_DEBUG_MSG("main_connect_mqtt_host() - Waiting for MQTT_CONNECTION_INTERVAL_TIMEOUT_MS\n");
 			return;
 		}
-			
-		MQTT_CONNECT_TIMER_start();
 	}
 
 	// --- Initialize MQTT Interface
@@ -720,6 +751,7 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 	MAIN_DEBUG_MSG("                         - Client-ID: \"%s\"\n", p_mqttInterface->client_id);
 
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize MQTT-Interface (Host-Addr: %s / Client-ID: %s)", p_mqttInterface->host_address, p_mqttInterface->client_id);
+	LCD_PRINTF("INIT: MQTT");
 
 	u8 err_code = 0;
 
@@ -727,21 +759,25 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 			
 		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Initializing MQTT-Client has FAILED !!! - error-code = %d\n", err_code);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Initializing MQTT-Client has FAILED !!! --- (error-code = %d)", err_code);
+		LCD_PRINTF("err: INIT");
 
 	} else 	if ((err_code = mqtt_connect(p_mqttInterface)) != NO_ERR) {
 
 		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Connect to MQTT-Host has FAILED !!! - error-code = %d\n", err_code);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Connect to MQTT-Host has FAILED !!! --- (error-code = %d)", err_code);
+		LCD_PRINTF("err: CONNECT");
 
 	} else if ((err_code = mqtt_send_message(&myMqttInterface, &p_mqttInterface->message)) != NO_ERR) {
 
 		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Sending MQTT-Welcome-Message has FAILED !!! - error-code = %d\n", err_code);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Sending MQTT-Welcome-Message has FAILED !!! --- (error-code = %d)", err_code);
+		LCD_PRINTF("err: SEND");
 
 	} else {
 
 		MAIN_DEBUG_MSG("main_connect_mqtt_host() - Connection to MQTT-Broker has benn established\n");
 		LOG_MSG(ERR_LEVEL_INFO, &p_cfgInterface->log_file, "Connection to MQTT-Broker has been established");
+		LCD_PRINTF("... OK");
 
 		p_mqttInterface->connection_lost = 0;
 		p_mqttInterface->initialized = 1;
@@ -750,4 +786,6 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 		mySchedulingInterface.report.reference = mstime_get_time();
 		mySchedulingInterface.configuration.reference = mstime_get_time();
 	}
+			
+	MQTT_CONNECT_TIMER_start();
 }

@@ -44,6 +44,9 @@ GPIO_INTERFACE_BUILD_INOUT(LCD_D7, LCD_PIN_NUMBER_D7)
 
 static char line_buffer[LCD_NUM_LINES][LCD_NUM_CHARS + 1];
 
+static u8 is_initialized = 0;
+static u8 is_enabled = 0;
+
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
 static void lcd_set_pins(u8 pins) {
@@ -84,9 +87,13 @@ void lcd_write_char(char character) {
 }
 
 void lcd_init(void) {
+
+	if (is_enabled == 0) {
+		LCD_DEBUG_MSG("lcd_init() - LCD is not enabled!\n");
+		return;
+	}
 	
 	LCD_DEBUG_MSG("lcd_init()\n");
-
 	LCD_DEBUG_MSG("lcd_init() - init pins\n");
 
 	LCD_RS_init();
@@ -140,13 +147,29 @@ void lcd_init(void) {
 		memset(line_buffer[line_cnt], ' ', LCD_NUM_CHARS);
 		line_buffer[line_cnt][LCD_NUM_CHARS] = '\0';
 	}
+
+	is_initialized = 1;
 }
 
 void lcd_deinit(void) {
-	
+	is_initialized = 0;
+}
+
+void lcd_set_enabled(u8 enabled) {
+	is_enabled = enabled != 0 ? 1 : 0;
 }
 
 void lcd_write_line(char* message) {
+
+	if (is_enabled == 0) {
+		LCD_DEBUG_MSG("lcd_write_line() - LCD is not enabled!\n");
+		return;
+	}
+
+	if (is_initialized == 0) {
+		LCD_DEBUG_MSG("lcd_write_line() - Need to initialize LCD-Interface\n");
+		lcd_init();
+	}
 
 	LCD_DEBUG_MSG("lcd_write_line() - New Line: %s\n", message);
 
