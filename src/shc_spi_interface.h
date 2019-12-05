@@ -31,6 +31,7 @@ typedef struct {
 typedef struct {
 	
 	COM_INTERFACE_TYPE type;
+	u8 is_enabled;
 	union {
 		SPI_INTERFACE spi;
 	} data;

@@ -159,8 +159,6 @@ int main(int argc, char* argv[]) {
 	myMqttInterface.initialized = 0;
 	myMqttInterface.connection_lost = 1;
 
-	myCmdInterface.is_active = 0;
-
 
 	REPORT_TIMER_start();
 
@@ -458,6 +456,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 	p_scheduling_interface->configuration.interval = CONFIGURATION_SCHEDULE_DEFAULT_INTERVAL_MS;
 
 	// 48000  4800 	9600 	38400 	115200
+	p_com_interface->is_enabled = 0;
 	p_com_interface->data.spi.speed_hz = 9600;
 	p_com_interface->data.spi.bits_per_word = 8;
 	p_com_interface->data.spi.delay = 0;
@@ -483,7 +482,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 	p_cmd_interface->report_file.act_file_pointer = 0;
 	p_cmd_interface->event_file.handle = 0;
 	p_cmd_interface->event_file.act_file_pointer = 0;
-	p_cmd_interface->is_active = 1;
+	p_cmd_interface->is_active = 0;
 	p_cmd_interface->fail_counter = 0;
 
 	p_cfg_interface->log_file.act_file_pointer = 0;
@@ -591,6 +590,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 
 		if (memcmp(cfg_key, CFG_NAME_COM_SPI_DEVICE, length_key) == 0) {
 			memcpy(p_com_interface->data.spi.device, cfg_value, COM_DEVICE_NAME_STRING_LENGTH);
+			p_com_interface->is_enabled = 1;
 		} else
 
 		if (memcmp(cfg_key, CFG_NAME_LOG_FILE_PATH, length_key) == 0) {
@@ -626,6 +626,11 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 		if (memcmp(cfg_key, CFG_NAME_SCHEDULE_INTERVAL_CONFIG_MS, length_key) == 0) {
 			char *ptr;
 			p_scheduling_interface->configuration.interval = (u32)strtol(cfg_value, &ptr, 10);
+		} else
+
+		if (memcmp(cfg_key, CFG_NAME_LCD_ENABLE, length_key) == 0) {
+			char *ptr;
+			lcd_set_enabled((u32)strtol(cfg_value, &ptr, 10));
 		}
 
 		else {
@@ -674,13 +679,20 @@ static void main_reset_control_board(void) {
 }
 
 static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface) {
-		
+
 	if (BOARD_CONNECT_TIMER_is_active()) {
 
-		if (BOARD_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
+		if (BOARD_CONNECT_TIMER_is_up(BOARD_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
 			//MAIN_DEBUG_MSG("main_connect_control_board() - Waiting for BOARD_CONNECTION_INTERVAL_TIMEOUT_MS\n");
 			return;
 		}
+	}
+			
+	BOARD_CONNECT_TIMER_start();
+		
+	if (p_comInterface->is_enabled == 0) {		
+		MAIN_DEBUG_MSG("main_connect_control_board() - COMMUNICATION INTERFACE is not enabled!\n");
+		return;
 	}
 	
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize SPI-Interface");
@@ -727,8 +739,6 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 		p_cmdInterface->is_active = 0;
 
 	}
-			
-	BOARD_CONNECT_TIMER_start();
 }
 
 static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFACE* p_cfgInterface) {
