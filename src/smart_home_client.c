@@ -84,6 +84,7 @@ TIME_MGMN_BUILD_TIMER(RESET_TIMER)
 TIME_MGMN_BUILD_TIMER(MQTT_CONNECT_TIMER)
 TIME_MGMN_BUILD_TIMER(BOARD_CONNECT_TIMER)
 TIME_MGMN_BUILD_TIMER(REPORT_TIMER)
+TIME_MGMN_BUILD_TIMER(DATETIME_TIMER)
 
 /*!
  *
@@ -161,6 +162,7 @@ int main(int argc, char* argv[]) {
 
 
 	REPORT_TIMER_start();
+	DATETIME_TIMER_start();
 
 	while (1) {
 
@@ -213,6 +215,8 @@ int main(int argc, char* argv[]) {
 				//mqtt_prepare_message(&myMqttInterface.message, &myCmdInterface.message);
 
 				MAIN_DEBUG_MSG("main() - COMMAND HANDLING - Message : \"%s\"\n", myCmdInterface.message.payload);
+				LCD_PRINTF("Command Handling");
+
 				if (IS_EXECUTION_COMMAND(myCmdInterface.message)) {
 
 					if ((err_code = cmd_handler_prepare_execution(&myCmdInterface)) != NO_ERR) {
@@ -231,13 +235,19 @@ int main(int argc, char* argv[]) {
 						do {
 							if ((err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Prepare Com-Command has FAILED !!! --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
-
+								LCD_PRINTF("... COM ERR !!!");
+							
 							} else if ((err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Com-Command has FAILED !!! --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
+								LCD_PRINTF("... COM ERR !!!");
 
 							} else if ((err_code = cmd_handler_get_error_code(&myCmdInterface)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Unexpected Status-Code --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
+								LCD_PRINTF("... COM ERR !!!");
 
+							} else {
+
+								LCD_PRINTF("... OK");
 							}
 
 							if (++cmd_counter == CMD_DEFAULT_RESEND_COUNTER) {
@@ -253,6 +263,7 @@ int main(int argc, char* argv[]) {
 			if (myMqttInterface.msg_delivered && REPORT_TIMER_is_up(mySchedulingInterface.report.interval)) {
 
 				MAIN_DEBUG_MSG("main() - Report Handling - Time : %d \n", mstime_get_time());
+				LCD_PRINTF("Report Handling");
 				
 				while ((err_code = cmd_handler_prepare_command_from_file(&myCmdInterface, &myCmdInterface.report_file)) == NO_ERR) {
 
@@ -270,6 +281,7 @@ int main(int argc, char* argv[]) {
 						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface);
 						if (err_code != NO_ERR) {
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Sending Report-Command has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
+							LCD_PRINTF("... COM ERR !!!");
 							restore_last_file_pointer(&myCmdInterface.report_file);
 							break;
 						}
@@ -277,6 +289,7 @@ int main(int argc, char* argv[]) {
 						err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS);
 						if (err_code != NO_ERR) {
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Receive Report-Answer has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
+							LCD_PRINTF("... COM ERR !!!");
 							restore_last_file_pointer(&myCmdInterface.report_file);
 							break;
 						}
@@ -322,14 +335,24 @@ int main(int argc, char* argv[]) {
 				}
 
 				if (err_code == ERR_FILE_OPEN) {
+
 					MAIN_DEBUG_MSG("main() - Error opening Report-File\n");
-					LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- File Open FAILED !!! --- (error-code = %d / File: %s)", err_code, (char*)myCmdInterface.report_file.path);						
+					LCD_PRINTF("... NO FILE !!!");
+
+					LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- File Open FAILED !!! --- (error-code = %d / File: %s)", err_code, (char*)myCmdInterface.report_file.path);
+					REPORT_TIMER_start();
+
 					break;
 				}
 				
 				if (err_code == ERR_INVALID_ARGUMENT) {
+
 					MAIN_DEBUG_MSG("main() - Invalid Argument Exception on Report-Handling\n");
-					LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- Report-Handling failed because of INVALID_ARGUMENT_EXCEPTION !!!");						
+					LCD_PRINTF("... INV ARG !!!");
+
+					LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "- Report-Handling failed because of INVALID_ARGUMENT_EXCEPTION !!!");
+					REPORT_TIMER_start();
+
 					break;
 				}
 
@@ -337,6 +360,7 @@ int main(int argc, char* argv[]) {
 					// start timer after all report-commands have been handled
 					// because there is only one command-handled within one loop-itereation
 					REPORT_TIMER_start();
+					LCD_PRINTF("... OK");
 				}
 			}
 
@@ -538,6 +562,11 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 
 	while (num_bytes != 0) {
 	 
+		if (line[0] == '#') {
+			MAIN_CFG_DEBUG_MSG("command_line_parser() - Ignoring line: %s\n", line);
+			goto NEXT_CONFIG_LINE;
+		}
+
 		split_string('=', line, num_bytes, cfg_key, GENERAL_STRING_BUFFER_MAX_LENGTH, cfg_value, GENERAL_STRING_BUFFER_MAX_LENGTH);
 
 		u16 length_key = string_length(cfg_key);
@@ -553,7 +582,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 		//memset(cfg_key + length_key, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_key);
 		//memset(cfg_value + length_value, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_value);
 
-		MAIN_CFG_DEBUG_MSG("key:%s : value:%s\n", cfg_key, cfg_value);
+		MAIN_CFG_DEBUG_MSG("command_line_parser() - key:%s : value:%s\n", cfg_key, cfg_value);
 
 		if (memcmp(cfg_key, CFG_NAME_MQTT_HOST_ADDR, length_key) == 0) {
 			memcpy(p_mqtt_interface->host_address, cfg_value, MQTT_HOST_ADDRESS_STRING_LENGTH);

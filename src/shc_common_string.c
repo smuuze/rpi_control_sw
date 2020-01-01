@@ -58,7 +58,7 @@ void hex_dump(const void *src, size_t length, size_t line_size, char *prefix) {
 			}
 			
 			STRING_DEBUG_MSG("\n");			
-			if (length > 0) {
+			if (length > 0 ) {
 				STRING_DEBUG_MSG("%s | ", prefix);
 			}
 		}
@@ -245,11 +245,14 @@ u16 string_append(char* p_string_to, char* p_string_from, u16 max_length) {
 	return (len_string_to + len_string_from);	
 }
 
-u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array, u8 byte_array_max_len) {
+u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array, u16 byte_array_max_len) {
 	
 	if (hex_string_len < 2) {
+		STRING_DEBUG_MSG("hex_string_to_byte_array() - hex_string_len(%d) < 2\n", hex_string_len);
 		return 0;
 	}
+		
+	STRING_DEBUG_MSG("hex_string_to_byte_array() - hex_string_len = %d - byte_array_max_len = %d\n", hex_string_len, byte_array_max_len);
 	
 	u16 i = 0;
 	u8 j = 0;
@@ -343,4 +346,11 @@ u8 byte_array_string_to_hex_string(u8* byte_array, u8 byte_array_len, char* hex_
 	}
 	
 	return j;
+}
+
+void string_get_time(char* time_string) {
+
+	FILE* pipe = popen("date +\"%H:%M\"", "r");
+	read_line(pipe, time_string, 128);
+	fclose(pipe);
 }

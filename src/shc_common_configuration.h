@@ -44,6 +44,8 @@
 typedef struct {
 	FILE_INTERFACE cfg_file;
 	FILE_INTERFACE log_file;
+	FILE_INTERFACE trace_file;
+	FILE_INTERFACE base_path;
 } CFG_INTERFACE;
 
 #endif

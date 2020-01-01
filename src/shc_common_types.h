@@ -86,5 +86,9 @@ typedef struct {
 	SCHEDULING_TIME_VALUE report;
 } SCHEDULING_INTERFACE;
 
+u16 readU16_LSB(u8* p_buffer);
+u16 readU16_MSB(u8* p_buffer);
+
+#define readU16				readU16_LSB
 
 #endif // _SHC_COMMON_TYPES_H_

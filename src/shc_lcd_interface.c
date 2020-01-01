@@ -6,7 +6,9 @@
  *	Brief	:
  * ------------------------------------------------------------------------------
  */
- 
+
+#define LCD_DEBUG_MSG				noDEBUG_MSG
+
 // ---- INCLUDES ----------------------------------------------------------------
 
 #include "shc_project_configuration.h"
@@ -23,8 +25,6 @@
 #include <linux/spi/spidev.h>
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
-
-#define LCD_DEBUG_MSG				DEBUG_MSG
 
 // helping definitions for fast access to pins via function lcd_set_pins()
 #define LCD_PIN_RS				(1 << 7)

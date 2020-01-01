@@ -12,7 +12,6 @@
 
 #include "shc_project_configuration.h"
 #include "shc_common_types.h"
-
 /*!
  *
  */
@@ -48,5 +47,30 @@ u8 file_delete(FILE_INTERFACE* p_file);
  *
  */
 u8 file_rename(FILE_INTERFACE* p_old_file, FILE_INTERFACE* p_new_file);
+
+/*!
+ *
+ */
+u8 file_open(FILE_INTERFACE* p_file);
+
+/*!
+ *
+ */
+void file_close(FILE_INTERFACE* p_file);
+
+/*!
+ *
+ */
+u16 file_read_next_line(FILE_INTERFACE* p_file, char* next_line, u16 max_length);
+
+/*!
+ *
+ */
+u16 file_read_specific_line(FILE_INTERFACE* p_file, u16 line_number, char* next_line, u16 max_length);
+
+/*!
+ *
+ */
+u8 file_append_line(FILE_INTERFACE* p_file, char* new_line);
 
 #endif // _SHC_FILE_INTERFACE_H_

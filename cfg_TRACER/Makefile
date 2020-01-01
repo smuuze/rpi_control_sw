@@ -75,8 +75,8 @@ MSG_FINISH		:= --------------- Make done ---------------
 
 # --------- Application Properties (Target / Working dir / ...)
 
-VERSION_MAJOR		:= 4
-VERSION_MINOR		:= 1
+VERSION_MAJOR		:= 1
+VERSION_MINOR		:= 0
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 OBJECT_DIRECTORY	:= obj
@@ -85,17 +85,17 @@ CONFIG_DIRECTORY	:= cfg
 DEBUG_DIRECTORY		:= $(OBJECT_DIRECTORY)/debug
 DEPENDENCY_DIRECTORY	:= $(OBJECT_DIRECTORY)/dependency
 RELEASE_DIRECTORY	:= release/v$(VERSION)
-APP_PATH		:= src
+APP_PATH		:= ../src
 FORMAT			:= ihex
 
-TARGET			:= SmartHomeClient
-TARGET_DAEMON		:= shcd
-TARGET_SERVICE		:= shc_service
+TARGET			:= shcTracer
+TARGET_DAEMON		:= 
+TARGET_SERVICE		:= s
 
 # --------- Modules
 
 MODULES			=
-MODULES 		+= LCD
+#MODULES 		+= LCD
 
 # --------- Include Path
 
@@ -113,16 +113,19 @@ LIBS += -l wiringPi
 # --------- Source File List
 
 CSRCS = 
-CSRCS += $(APP_PATH)/smart_home_client.c
+CSRCS += main_tracer.c
 CSRCS += $(APP_PATH)/shc_timer.c
-CSRCS += $(APP_PATH)/shc_command_interface.c
+CSRCS += $(APP_PATH)/shc_usart_interface.c
+CSRCS += $(APP_PATH)/shc_trace_parser.c
+CSRCS += $(APP_PATH)/shc_common_types.c
+#CSRCS += $(APP_PATH)/shc_command_interface.c
 CSRCS += $(APP_PATH)/shc_common_string.c
 CSRCS += $(APP_PATH)/shc_debug_interface.c
 CSRCS += $(APP_PATH)/shc_file_interface.c
-CSRCS += $(APP_PATH)/shc_gpio_interface.c
-CSRCS += $(APP_PATH)/shc_mqtt_interface.c
+#CSRCS += $(APP_PATH)/shc_gpio_interface.c
+#CSRCS += $(APP_PATH)/shc_mqtt_interface.c
 CSRCS += $(APP_PATH)/shc_qeue_interface.c
-CSRCS += $(APP_PATH)/shc_spi_interface.c
+#CSRCS += $(APP_PATH)/shc_spi_interface.c
 
 ifneq '' '$(findstring LCD,$(MODULES))'
 CSRCS += $(APP_PATH)/shc_lcd_interface.c
@@ -159,11 +162,14 @@ LDFLAGS += -L$(TOOLCHAIN_LIB_PATH)
 OPTIMIZATION = -Os
 MCU_FLAG = 
 
-# --------- 
+# ---------
 
-RELEASE_OBJECTS		:= $(CSRCS:%.c=$(OBJECT_DIRECTORY)/%.o)
+CSRC_OBJ		:= $(notdir $(CSRCS))
+
+SOURCE_OBJECTS		:= $(CSRCS:%.c=%.o)
+RELEASE_OBJECTS		:= $(CSRC_OBJ:%.c=$(OBJECT_DIRECTORY)/%.o)
 DEBUG_OBJECTS		:= $(CSRCS:%.c=$(DEBUG_DIRECTORY)/%.o)
-DEPENDENCY_OBJECTS	:= $(CSRCS:%.c=$(DEPENDENCY_DIRECTORY)/%.o)
+DEPENDENCY_OBJECTS	:= $(CSRC_OBJ:%.c=$(DEPENDENCY_DIRECTORY)/%.o)
 
 LOCAL_OBJECTS		:= $(notdir $(RELEASE_OBJECTS))
 LOCAL_DEBUG_OBJECTS	:= $(notdir $(DEBUG_OBJECTS))
@@ -209,7 +215,7 @@ clean:
 
 # --------- 
 
-release_obj: obj_dir $(RELEASE_OBJECTS)
+release_obj: obj_dir $(SOURCE_OBJECTS)
 	$(VERBOSE) $(ECHO) - Generating Relase-Objects - Version: $(VERSION)
 	$(VERBOSE) $(CC) $(OPTIMIZATION) $(DEFS) $(CFLAGS) $(LIBS) $(LDFLAGS) $(MCU_FLAG) $(INC_PATH:%=-I%) $(LOCAL_OBJECTS:%=$(OBJECT_DIRECTORY)/%) -o $(OBJECT_DIRECTORY)/$(TARGET).elf
 

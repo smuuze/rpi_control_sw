@@ -19,7 +19,7 @@
 #define VERSION_MINOR				0
 #endif
 
-#define GENERAL_STRING_BUFFER_MAX_LENGTH	100
+#define GENERAL_STRING_BUFFER_MAX_LENGTH	256
 #define GENERAL_STRING_BIG_BUFFER_MAX_LENGTH	256
 #define GENERAL_MAX_NUMBER_OF_MSG_IN_QEUE	10
 
@@ -27,15 +27,20 @@
 
 #define COMMAND_LINE_ARGUMENT_CFG_FILE		"-cfg"
 #define COMMAND_LINE_ARGUMENT_LCD		"-lcd"
-#define COMMAND_LINE_ARGUMENT_CONTROLLER	"-controller"
+#define COMMAND_LINE_ARGUMENT_CONTROLLER	"-control"
+#define COMMAND_LINE_ARGUMENT_FILE		"-file"
+#define COMMAND_LINE_ARGUMENT_MQTT		"-mgtt"
+#define COMMAND_LINE_ARGUMENT_PATH		"-path"
 
-#define FILE_PATH_MAX_STRING_LENGTH		96
+#define FILE_PATH_MAX_STRING_LENGTH		256
 
 #define LOG_FILE_MAX_SIZE_BYTES			(10 * 1024 * 1024)
 
 #define CONFIGURATION_FILE_PATH			"smart_home_configuration_file.txt"
 #define COMMAND_FILE_PATH			"smart_home_command_file.txt"
 #define REPORT_FILE_PATH			"smart_home_report_file.txt"
+#define TRACE_FILE_DEFAULT_PATH			"trace_file.txt"
+#define TRACE_DEFAULT_BASE_PATH			"../"
 
 #define CMD_RX_ANSWER_TIMEOUT_MS		1000
 #define CMD_TX_COMMAND_TIMEOUT_MS		1000
@@ -63,7 +68,7 @@
 #define GPIO_SAMPLE_PIN				29
 #define GPIO_EVENT_PIN				21
 
-#define config_MAX_LENGTH_OF_FILE_LINE		512
+#define config_MAX_LENGTH_OF_FILE_LINE		1024
 
 // -------- LCD-Display -----------------------------------------------------------------
 

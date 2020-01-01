@@ -21,7 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define COMMAND_DEBUG_MSG				DEBUG_MSG
+#define COMMAND_DEBUG_MSG				noDEBUG_MSG
 
 #define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
@@ -84,7 +84,7 @@ void cmd_handler_init(void) {
 
 u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
 		
-	COMMAND_DEBUG_MSG("--- cmd_handler_prepare_command_from_file\n");
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - cmd_handler_prepare_command_from_file\n");
 	
 	if (p_file == NULL) {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file - INVALID_ARGUMENT !!! (p_file)\n");
@@ -98,7 +98,7 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 
 	p_file->handle = fopen(p_file->path, "r");
 	if (p_file->handle == NULL) {
-		COMMAND_DEBUG_MSG("--- Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_file->path,  EXIT_FAILURE);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_file->path,  EXIT_FAILURE);
 		return ERR_FILE_OPEN;
 	}
 
@@ -112,16 +112,16 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 
 	fclose(p_file->handle);
 
-	COMMAND_DEBUG_MSG("--- File-Line: %s\n", file_line);
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - File-Line: %s\n", file_line);
 
 	if (num_bytes == 0) {
-		COMMAND_DEBUG_MSG("--- End of Command-File reached !!!\n");
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - End of Command-File reached !!!\n");
 		p_file->act_file_pointer = 0;
 		p_file->last_file_pointer = 0;
 		return ERR_END_OF_FILE;
 	}
 
-	COMMAND_DEBUG_MSG("--- File-Pointer : %d\n", p_file->act_file_pointer);
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - File-Pointer : %d\n", p_file->act_file_pointer);
 
 	char command_answer_string[2 * GENERAL_STRING_BUFFER_MAX_LENGTH];
 	char command_string[GENERAL_STRING_BUFFER_MAX_LENGTH];
@@ -180,7 +180,7 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 	if (p_cmd->type == COMMAND_TYPE_COMMUNICATION) {
 	}
 
-	COMMAND_DEBUG_MSG("--- Command: MSG=%s / CMD=%s / TYPE=%d / ANSW=%s\n", p_cmd->message.payload, command_data_string, p_cmd->type, answer_string);
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Command: MSG=%s / CMD=%s / TYPE=%d / ANSW=%s\n", p_cmd->message.payload, command_data_string, p_cmd->type, answer_string);
 
 	return NO_ERR;
 }
@@ -190,7 +190,7 @@ u8 cmd_handler_match_event_answer(COMMAND_INTERFACE* p_cmd, COMMAND_INTERFACE* p
 	#if EVENT_DEBUG_MSG == DEBUG_MSG
 	u8 i = 0;
 	for ( ; i < p_cmd->answer.length; i++) {
-		COMMAND_DEBUG_MSG("---> MATCHING: %02x - %02x \n", p_cmd->answer.payload[i], p_cmd_match->answer.payload[i]);
+		COMMAND_DEBUG_MSG("cmd_handler_match_event_answer() - MATCHING: %02x - %02x \n", p_cmd->answer.payload[i], p_cmd_match->answer.payload[i]);
 	}
 
 	#endif
@@ -202,7 +202,7 @@ u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code, u8 
 
 	if (err_code != NO_ERR) {
 	
-		COMMAND_DEBUG_MSG("---> Receive Report-Command has FAILED !!! --- (ERROR:%d)\n", err_code);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_report_message() - Receive Report-Command has FAILED !!! --- (ERROR:%d)\n", err_code);
 		
 		sprintf (
 			(char*)(p_cmd->message.payload + p_cmd->message.length),
@@ -244,9 +244,8 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	char path[128];
 	sprintf(path, "%s", p_cmd->command_file.path);
 
-	FILE* command_file_handle = fopen((const char*)path, "r");
-	if (command_file_handle == NULL) {
-		COMMAND_DEBUG_MSG("--- Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
+	if (file_open(&p_cmd->command_file) == 0) {
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
 		return ERR_FILE_OPEN;
 	}
 
@@ -255,26 +254,31 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	char command_data[256];
 	u16 num_bytes = 0;
 
+	COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Prepare command: %s\n", p_cmd->message.payload);
+
 	do  {
-		num_bytes = read_line(command_file_handle, command_line, 512);
+		num_bytes = file_read_next_line(&p_cmd->command_file, command_line, 512);
 		split_string('=', command_line, num_bytes, command_message, 256, command_data, 256);
+
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - CMD_MSG: %s - CMD_DATA: %s\n", command_message, command_data);
 
 		if (memcmp(p_cmd->message.payload, command_message, string_length(command_message)) == 0) {
 
 			p_cmd->command.length = hex_string_to_byte_array(command_data, string_length(command_data), p_cmd->command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);
+			COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Command has been found - Length: %d\n", p_cmd->command.length);
 			break;
 		}
 
 	} while (num_bytes != 0);
 
-	fclose(command_file_handle);
+	file_close(&p_cmd->command_file);
 
 	if (p_cmd->command.length != 0) {
-		COMMAND_DEBUG_MSG("--- Command: %s (%s) \n", command_message, command_data);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Command: %s (%s) \n", command_message, command_data);
 		return NO_ERR;
 
 	} else {
-		COMMAND_DEBUG_MSG("--- ERROR: Unknown Command (\"%s\")\n", p_cmd->message.payload);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - ERROR: Unknown Command (\"%s\")\n", p_cmd->message.payload);
 		return ERR_BAD_CMD;
 	}
 }
@@ -287,9 +291,8 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 	char path[128];
 	sprintf(path, "%s", p_cmd->execution_file.path);
 
-	p_cmd->execution_file.handle = fopen((const char*)path, "r");
-	if (p_cmd->execution_file.handle == NULL) {
-		COMMAND_DEBUG_MSG("--- Open Execution-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
+	if (file_open(&p_cmd->execution_file) == 0) {
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - Open Execution-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
 		return ERR_FILE_OPEN;
 	}
 
@@ -299,7 +302,7 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 	u16 num_bytes = 0;
 
 	do  {
-		num_bytes = read_line(p_cmd->execution_file.handle, command_line, 512);
+		num_bytes = file_read_next_line(&p_cmd->execution_file, command_line, 512);
 		split_string('=', command_line, num_bytes, command_message, 256, command_data, 256);
 
 		if (memcmp(p_cmd->message.payload, command_message, string_length(command_message)) == 0) {
@@ -311,14 +314,14 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 
 	} while (num_bytes != 0);
 
-	fclose(p_cmd->execution_file.handle);
+	file_close(&p_cmd->execution_file);
 
 	if (p_cmd->command.length != 0) {
-		COMMAND_DEBUG_MSG("--- Execution: %s (%s) \n", command_message, command_data);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - Execution: %s (%s) \n", command_message, command_data);
 		return NO_ERR;
 
 	} else {
-		COMMAND_DEBUG_MSG("--- ERROR: Unknown Execution (\"%s\")\n", p_cmd->message.payload);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - ERROR: Unknown Execution (\"%s\")\n", p_cmd->message.payload);
 		return ERR_BAD_CMD;
 	}
 }
@@ -389,14 +392,14 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 			);
 
 			if (err_code != NO_ERR) {
-				COMMAND_DEBUG_MSG("-- ERROR before sending command - reading old answer length has FAIELD !!! --- \n");
+				COMMAND_DEBUG_MSG("cmd_handler_send_command - ERROR before sending command - reading old answer length has FAIELD !!! --- \n");
 				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length > GENERAL_STRING_BUFFER_MAX_LENGTH) {
 				err_code = ERR_ANSWER_LENGTH;
-				COMMAND_DEBUG_MSG("-- ERROR before sending command - old anser to long OVERFLOW !!! --- \n");
+				COMMAND_DEBUG_MSG("cmd_handler_send_command - ERROR before sending command - old anser to long OVERFLOW !!! --- \n");
 				p_cmd->fail_counter += 1;
 				break;
 			}
@@ -411,7 +414,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 
 				u8 length = (p_cmd->answer.length > p_cmd->command.length) ? p_cmd->answer.length : p_cmd->command.length;
 				err_code = spi_transfer(&p_com->data.spi, length, (const u8*)(p_cmd->command.payload) + 1, p_cmd->answer.payload);
-				COMMAND_DEBUG_MSG("--- Need to read old answer from the interface (Length: %d)!!!\n", p_cmd->answer.length);
+				COMMAND_DEBUG_MSG("cmd_handler_send_command - Need to read old answer from the interface (Length: %d)!!!\n", p_cmd->answer.length);
 
 			} else {
 				err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*)(p_cmd->command.payload) + 1, NULL);
@@ -453,20 +456,20 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 			);
 
 			if (err_code) {
-				COMMAND_DEBUG_MSG("-- Receiving answer-length has FAILED !!! --- (ERR: %d)\n", err_code);
+				COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Receiving answer-length has FAILED !!! --- (ERR: %d)\n", err_code);
 				err_code = ERR_ANSWER_LENGTH;
 				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length == 0) {
-				COMMAND_DEBUG_MSG("-- Answer-Length is zero, nothing to receive. \n");
+				COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Answer-Length is zero, nothing to receive. \n");
 				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length > GENERAL_STRING_BUFFER_MAX_LENGTH) {
-				COMMAND_DEBUG_MSG("-- Answer-Length is too Long !!! --- (LENGTH: %d)\n", p_cmd->answer.length);
+				COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Answer-Length is too Long !!! --- (LENGTH: %d)\n", p_cmd->answer.length);
 				err_code = ERR_ANSWER_LENGTH;
 				p_cmd->fail_counter += 1;
 				break;
@@ -481,7 +484,7 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 			);
 
 			if (err_code) {
-				COMMAND_DEBUG_MSG("-- Receiving answer has FAILED !!! --- (ERR: %d)\n", err_code);
+				COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Receiving answer has FAILED !!! --- (ERR: %d)\n", err_code);
 				err_code = ERR_COMMUNICATION;
 				p_cmd->fail_counter += 1;
 				break;
