@@ -52,6 +52,7 @@ typedef struct {
 	TRACE_OBJECT_TYPE type;
 	u16 length;
 	u16 line_number;
+	u8 data_length;
 	char file_name[TRACE_OBJECT_FILE_NAME_LENGTH];
 	char source_line[TRACE_OBJECT_SOURCE_LINE_LENGTH];
 

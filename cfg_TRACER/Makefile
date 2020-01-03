@@ -118,6 +118,10 @@ CSRCS += $(APP_PATH)/shc_timer.c
 CSRCS += $(APP_PATH)/shc_usart_interface.c
 CSRCS += $(APP_PATH)/shc_trace_parser.c
 CSRCS += $(APP_PATH)/shc_common_types.c
+CSRCS += $(APP_PATH)/shc_thread_interface.c
+CSRCS += $(APP_PATH)/shc_thread_read_trace_object.c
+CSRCS += $(APP_PATH)/shc_thread_parse_trace_object.c
+CSRCS += $(APP_PATH)/shc_thread_print_trace_object.c
 #CSRCS += $(APP_PATH)/shc_command_interface.c
 CSRCS += $(APP_PATH)/shc_common_string.c
 CSRCS += $(APP_PATH)/shc_debug_interface.c
@@ -151,6 +155,7 @@ CFLAGS += -Os
 #CFLAGS += -fpack-struct
 #CFLAGS += -fshort-enums
 #CFLAGS += -lm
+CFLAGS += -pthread
 
 LDFLAGS +=
 #LDFLAGS += --section-start init=0

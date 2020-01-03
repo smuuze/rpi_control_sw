@@ -17,6 +17,14 @@
 #define USART_DEVICE_NAME_MAX_LENGTH			128
 #endif
 
+#ifndef DEAFULT_USART_DEVICE
+#define DEAFULT_USART_DEVICE 				"/dev/serial0"
+#endif
+
+#ifndef DEFAULT_USART_TIMEOUT_MS
+#define DEFAULT_USART_TIMEOUT_MS			25
+#endif
+
 typedef enum {
 	USART_BAUDRATE_9600 = 0,
 	USART_BAUDRATE_230400

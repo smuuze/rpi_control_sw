@@ -7,7 +7,7 @@
  * ------------------------------------------------------------------------------
  */
 
-#define TRACE_DEBUG_MSG				DEBUG_MSG
+#define TRACE_DEBUG_MSG				noDEBUG_MSG
  
 // ---- INCLUDES ----------------------------------------------------------------
 
@@ -32,11 +32,45 @@ static u8 tracer_get_trace_type(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT* p_
 
 	switch (raw_type) {
 		default: return 0;
-		case TRACER_TRACE_TYPE_RAW_PASS  : p_trace_obj->type = TRACE_OBJECT_TYPE_PASS;  break;
-		case TRACER_TRACE_TYPE_RAW_BYTE  : p_trace_obj->type = TRACE_OBJECT_TYPE_BYTE;  break;
-		case TRACER_TRACE_TYPE_RAW_WORD  : p_trace_obj->type = TRACE_OBJECT_TYPE_WORD;  break;
-		case TRACER_TRACE_TYPE_RAW_LONG  : p_trace_obj->type = TRACE_OBJECT_TYPE_LONG;  break;
-		case TRACER_TRACE_TYPE_RAW_ARRAY : p_trace_obj->type = TRACE_OBJECT_TYPE_ARRAY; break;
+		case TRACER_TRACE_TYPE_RAW_PASS  : 
+
+			p_trace_obj->type = TRACE_OBJECT_TYPE_PASS;
+			p_trace_obj->data_length = 0;
+
+			TRACE_DEBUG_MSG("tracer_get_trace_type() - TRACE_OBJECT_TYPE_PASS\n");
+			break;
+
+		case TRACER_TRACE_TYPE_RAW_BYTE  : 
+
+			p_trace_obj->type = TRACE_OBJECT_TYPE_BYTE;  
+			p_trace_obj->data_length = 1;
+
+			TRACE_DEBUG_MSG("tracer_get_trace_type() - TRACE_OBJECT_TYPE_BYTE\n");
+			break;
+
+		case TRACER_TRACE_TYPE_RAW_WORD  : 
+
+			p_trace_obj->type = TRACE_OBJECT_TYPE_WORD;  
+			p_trace_obj->data_length = 2;
+
+			TRACE_DEBUG_MSG("tracer_get_trace_type() - TRACE_OBJECT_TYPE_WORD\n");
+			break;
+
+		case TRACER_TRACE_TYPE_RAW_LONG  : 
+
+			p_trace_obj->type = TRACE_OBJECT_TYPE_LONG;  
+			p_trace_obj->data_length = 4;
+
+			TRACE_DEBUG_MSG("tracer_get_trace_type() - TRACE_OBJECT_TYPE_LONG\n");
+			break;
+
+		case TRACER_TRACE_TYPE_RAW_ARRAY : 
+
+			p_trace_obj->type = TRACE_OBJECT_TYPE_ARRAY; 
+			p_trace_obj->data_length = p_raw_object->data[TRACE_PARSER_INDEX_TRACE_TYPE + 1];
+
+			TRACE_DEBUG_MSG("tracer_get_trace_type() - TRACE_OBJECT_TYPE_ARRAY - Length: %d\n", p_trace_obj->data_length);
+			break;
 	}
 
 	return 1;
@@ -67,10 +101,11 @@ static void tracer_get_line_number(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT*
 			break;
 
 		case TRACE_OBJECT_TYPE_ARRAY : 
-			index = TRACE_PARSER_INDEX_TRACE_TYPE + TRACE_PARSER_NUM_BYTES_TRACE_TYPE;
+			index = TRACE_PARSER_INDEX_TRACE_TYPE + TRACE_PARSER_NUM_BYTES_TRACE_TYPE + 1 + p_trace_obj->data_length;
 			break;
 	}
 
+	TRACE_DEBUG_MSG("tracer_get_line_number() - Index: %d\n", index);
 	p_trace_obj->line_number = readU16(p_raw_object->data + index);
 }
 
@@ -103,13 +138,14 @@ static void tracer_get_file_name(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT* p
 			break;
 
 		case TRACE_OBJECT_TYPE_ARRAY : 
-			index = TRACE_PARSER_INDEX_TRACE_TYPE + TRACE_PARSER_NUM_BYTES_TRACE_TYPE;
+			index = TRACE_PARSER_INDEX_TRACE_TYPE + TRACE_PARSER_NUM_BYTES_TRACE_TYPE + 2 + 1 + p_trace_obj->data_length;
+			length -= (1 + p_trace_obj->data_length);
 			break;
 	}
 
 
 	if (length > TRACE_OBJECT_FILE_NAME_LENGTH - 1) {
-		//TRACE_DEBUG_MSG("tracer_get_file_name() - OVERFLOW !! length > TRACE_OBJECT_FILE_NAME_LENGTH (%d > %d)!!!\n", length, TRACE_OBJECT_FILE_NAME_LENGTH);
+		TRACE_DEBUG_MSG("tracer_get_file_name() - OVERFLOW !! length > TRACE_OBJECT_FILE_NAME_LENGTH (%d > %d)!!!\n", length, TRACE_OBJECT_FILE_NAME_LENGTH);
 		offset = length - (TRACE_OBJECT_FILE_NAME_LENGTH - 1);
 		length = TRACE_OBJECT_FILE_NAME_LENGTH - 1;
 	}
@@ -119,7 +155,7 @@ static void tracer_get_file_name(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT* p
 		return;
 	}
 		
-	//TRACE_DEBUG_MSG("tracer_get_file_name() - Index: %d | Length: %d\n", index, length);
+	TRACE_DEBUG_MSG("tracer_get_file_name() - Index: %d | Length: %d\n", index, length);
 	memcpy(p_trace_obj->file_name, p_raw_object->data + index + offset, length);
 	p_trace_obj->file_name[length] = '\0';
 }

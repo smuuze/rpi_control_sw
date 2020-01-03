@@ -16,7 +16,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define STRING_DEBUG_MSG				noDEBUG_MSG
+#define STRING_DEBUG_MSG				DEBUG_MSG
 
 
 // ---- STATIC DATA -------------------------------------------------------------
