@@ -76,7 +76,7 @@ MSG_FINISH		:= --------------- Make done ---------------
 # --------- Application Properties (Target / Working dir / ...)
 
 VERSION_MAJOR		:= 1
-VERSION_MINOR		:= 0
+VERSION_MINOR		:= 5
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 OBJECT_DIRECTORY	:= obj

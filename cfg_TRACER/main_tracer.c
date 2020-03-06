@@ -66,7 +66,7 @@ CFG_INTERFACE myCfgInterface;
 
 int main(int argc, char* argv[]) {
 
-	MAIN_DEBUG_MSG("Welcome to the SmartHomeClient v%d.%d\n", VERSION_MAJOR, VERSION_MINOR);
+	MAIN_DEBUG_MSG("Welcome to the SHC-Tracer v%d.%d\n", VERSION_MAJOR, VERSION_MINOR);
 
 	qeue_init(&myCommandQeue);
 
@@ -114,6 +114,10 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface) {
 	memcpy(p_cfg_interface->trace_file.path, TRACE_FILE_DEFAULT_PATH, string_length(TRACE_FILE_DEFAULT_PATH));
 	memcpy(p_cfg_interface->trace_file.path, TRACE_DEFAULT_BASE_PATH, string_length(TRACE_DEFAULT_BASE_PATH));
 
+	p_cfg_interface->output.console = 0;
+	p_cfg_interface->output.file = 0;
+	p_cfg_interface->output.mqtt = 0;
+
 	u8 i = 0;
 	for ( ; i < argc; i++) {
 
@@ -146,6 +150,9 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface) {
 			
 
 		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_MQTT, string_length(COMMAND_LINE_ARGUMENT_MQTT)) == 0) {
+
+		}  else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CONSOLE, string_length(COMMAND_LINE_ARGUMENT_CONSOLE)) == 0) {
+			p_cfg_interface->output.console = 1;
 
 		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_PATH, string_length(COMMAND_LINE_ARGUMENT_PATH)) == 0) {
 

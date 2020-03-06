@@ -21,6 +21,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
+
 // ---- STATIC DATA -------------------------------------------------------------
 
 
@@ -162,6 +163,58 @@ static void tracer_get_file_name(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT* p
 
 static void tracer_get_trace_data(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT* p_trace_obj) {
 
+	u16 index = TRACE_PARSER_INDEX_TRACE_TYPE + TRACE_PARSER_NUM_BYTES_TRACE_TYPE;
+	u16 length = p_raw_object->length - TRACE_PARSER_NUM_BYTES_HEADER - TRACE_PARSER_NUM_BYTES_BYTE_COUNT - TRACE_PARSER_NUM_BYTES_TRACE_TYPE - TRACE_PARSER_NUM_BYTES_LINE_NUMBER - TRACER_PARSER_NUM_BYTES_FOOTER;
+	u16 offset = 0;
+
+	switch (p_trace_obj->type) {
+		default:
+			break;
+
+		case TRACE_OBJECT_TYPE_PASS  :
+			p_trace_obj->data_length = 0;
+			break;
+
+		case TRACE_OBJECT_TYPE_BYTE  :
+
+			p_trace_obj->data.byte = p_raw_object->data[index];
+			p_trace_obj->data_length = 1;
+
+			//index += 1;
+			//length -= 1;
+			break;
+
+		case TRACE_OBJECT_TYPE_WORD  : 
+		
+			p_trace_obj->data.word = ((u16)p_raw_object->data[index + 1] << 8);
+			p_trace_obj->data.word += (u16)p_raw_object->data[index + 0];
+			p_trace_obj->data_length = 2;
+
+			//index += 2;
+			//length -= 2;
+			break;
+
+		case TRACE_OBJECT_TYPE_LONG  : 
+		
+			p_trace_obj->data.integer  = ((u16)p_raw_object->data[index + 3] << 24);
+			p_trace_obj->data.integer += ((u16)p_raw_object->data[index + 2] << 16);		
+			p_trace_obj->data.integer += ((u16)p_raw_object->data[index + 1] << 8);
+			p_trace_obj->data.integer += ((u16)p_raw_object->data[index + 0]);
+			p_trace_obj->data_length = 4;
+
+			//index += 4;
+			//length -= 4;
+			break;
+
+		case TRACE_OBJECT_TYPE_ARRAY : 
+
+			p_trace_obj->data_length = p_raw_object->data[index] > TRACE_OBJECT_ARRAY_LENGTH ? TRACE_OBJECT_ARRAY_LENGTH : p_raw_object->data[index];
+			memcpy(p_trace_obj->data.array, p_raw_object->data + index + 1, p_trace_obj->data_length);
+
+			//index = TRACE_PARSER_INDEX_TRACE_TYPE + TRACE_PARSER_NUM_BYTES_TRACE_TYPE + 2 + 1 + p_trace_obj->data_length;
+			//length -= (1 + p_trace_obj->data_length);
+			break;
+	}
 }
 
 u8 tracer_parse_object(TRACE_OBJECT_RAW* p_raw_object, TRACE_OBJECT* p_object) {

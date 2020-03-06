@@ -32,6 +32,21 @@ extern MSG_QEUE myCommandQeue;
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
+void mqtt_configure(MQTT_INTERFACE* p_mqtt_interface, char* p_host_addr, char* p_topic_name, char* p_client_name) {
+	
+	if (p_host_addr != NULL) {
+		memcpy(p_mqtt_interface->host_address, p_host_addr, string_length(p_host_addr));
+	}
+	
+	if (p_client_name != NULL) {
+		memcpy(p_mqtt_interface->client_id, p_client_name, string_length(p_client_name));
+	}
+	
+	if (p_topic_name != NULL) {
+		memcpy(p_mqtt_interface->topic_name, p_topic_name, string_length(p_topic_name));
+	}
+}
+
 u8 mqtt_init(MQTT_INTERFACE* p_mqtt_interface) {
 
 	MQTT_DEBUG_MSG("mqtt_init() - Initialize MQTT-Client\n");
@@ -46,6 +61,9 @@ u8 mqtt_init(MQTT_INTERFACE* p_mqtt_interface) {
 		MQTTClient_setTraceLevel(MQTTCLIENT_TRACE_ERROR);
 	}
 	#endif
+
+	p_mqtt_interface->connection_lost = 1;
+	p_mqtt_interface->initialized = 1;
 
 	return NO_ERR;
 }

@@ -38,7 +38,17 @@
 
 #define CFG_NAME_LCD_ENABLE			"LCD_ENABLE"
 
-/*
+/*!
+ *
+ */
+typedef struct {
+	unsigned int console:1;
+	unsigned int file:1;
+	unsigned int mqtt:1;
+	unsigned int rfu:28;
+} CFG_INTERFACE_OUTPUTS;
+
+/*!
  *
  */
 typedef struct {
@@ -46,6 +56,7 @@ typedef struct {
 	FILE_INTERFACE log_file;
 	FILE_INTERFACE trace_file;
 	FILE_INTERFACE base_path;
+	CFG_INTERFACE_OUTPUTS output;
 } CFG_INTERFACE;
 
 #endif

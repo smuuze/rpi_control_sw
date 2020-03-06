@@ -57,6 +57,11 @@ typedef struct {
 /*!
  *
  */
+void mqtt_configure(MQTT_INTERFACE* p_mqtt_interface, char* p_host_addr, char* p_topic_name, char* p_client_name);
+
+/*!
+ *
+ */
 u8 mqtt_init(MQTT_INTERFACE* p_mqtt_interface);
 
 /*!
@@ -89,5 +94,48 @@ int messageArrived_Callback(void* context, char* topicName, int topcLength, MQTT
  */
 void deliveryComplete_Callback(void* context, MQTTClient_deliveryToken token);
 
+#define MQTT_INTERFACE_BUILD_HOST(name)												\
+	static MQTT_INTERFACE __##name##_mqtt_interface;									\
+																\
+	void name##_configure(char* p_host_addr, char* p_topic_name, char* p_client_name) {					\
+		mqtt_configure(&__##name##_mqtt_interface, p_host_addr, p_topic_name, p_client_name);				\
+	}															\
+																\
+	u8 name##_init(void) {													\
+		return mqtt_init(&__##name##_mqtt_interface);									\
+	}															\
+																\
+	u8 name##_connect(void) {												\
+		return mqtt_connect(&__##name##_mqtt_interface);								\
+	}															\
+																\
+	u8 name##_send_message(STRING_BUFFER* p_msg_from) {									\
+		return mqtt_send_message(&__##name##_mqtt_interface, p_msg_from);						\
+	}															\
+																\
+	u8 name##_delivery_complete(void) {											\
+		return __##name##_mqtt_interface.msg_delivered != 0 ? 1 : 0;							\
+	}															\
+																\
+	u8 name##_connection_lost(void) {											\
+		return __##name##_mqtt_interface.connection_lost != 0 ? 1 : 0;							\
+	}															\
+																\
+	u8 name##_is_initialized(void) {											\
+		return __##name##_mqtt_interface.initialized != 0 ? 1 : 0;							\
+	}															\
+																\
+	u8 name##_disconnect(void) {												\
+		return 0;													\
+	}
+
+#define MQTT_INTERFACE_INCLUDE_HOST(name)											\
+	void name##_configure(char* p_host_addr, char* p_topic_name, char* p_client_name);					\
+	u8 name##_init(void);													\
+	u8 name##_connect(void);												\
+	u8 name##_send_message(STRING_BUFFER* p_msg_from);									\
+	u8 name##_delivery_complete(void);											\
+	u8 name##_connection_lost(void);											\
+	u8 name##_is_initialized(void) 								
 
 #endif // _SHC_MQTT_INTERFACE_H_
