@@ -151,7 +151,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface) {
 
 		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_MQTT, string_length(COMMAND_LINE_ARGUMENT_MQTT)) == 0) {
 
-		}  else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CONSOLE, string_length(COMMAND_LINE_ARGUMENT_CONSOLE)) == 0) {
+		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CONSOLE, string_length(COMMAND_LINE_ARGUMENT_CONSOLE)) == 0) {
 			p_cfg_interface->output.console = 1;
 
 		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_PATH, string_length(COMMAND_LINE_ARGUMENT_PATH)) == 0) {
@@ -163,14 +163,24 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface) {
 			memset(p_cfg_interface->base_path.path, 0x00, FILE_PATH_MAX_STRING_LENGTH);
 			memcpy(p_cfg_interface->base_path.path, argv[i + 1], string_length(argv[i + 1]));
 
-			MAIN_CFG_DEBUG_MSG("command_line_parser() - Using Trace-File: %s\n", p_cfg_interface->base_path.path);
+			MAIN_CFG_DEBUG_MSG("command_line_parser() - Using Trace-Path: %s\n", p_cfg_interface->base_path.path);
 
-		}
+		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_HELP, string_length(COMMAND_LINE_ARGUMENT_HELP)) == 0) {
+			return ERR_INVALID_ARGUMENT;
+		} 
+
+		
 	}
 
 	return NO_ERR;
 }
 
 void command_line_usage(void) {
-
+	printf("Tracer v%d.%d\n\n", VERSION_MAJOR, VERSION_MINOR);
+	printf("Usage: shcTracer [options]]\n\n");
+	printf("Options:\n");
+	printf("-path <path>                       : path to directory that includes your makefile\t\n");
+	printf("-file <path>                       : traceoutput will be stored into this file\t\n");
+	printf("-console                           : traceoutput will be shown on console\t\n");
+	printf("-mqtt <topic>@<servicer_ip:port>   : traceoutput will be shown on console\t\n");
 }
