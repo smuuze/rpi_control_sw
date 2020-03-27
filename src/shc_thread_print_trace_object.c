@@ -165,7 +165,7 @@ void* thread_print_trace_object_run(void* p_arg) {
 		}
 
 		if (myCfgInterface.output.file != 0) {
-			//file_append_line(&myCfgInterface.trace_file, trace_line);
+			file_append_line(&myCfgInterface.trace_file, trace_line);
 		}
 
 		if (myCfgInterface.output.mqtt != 0) {

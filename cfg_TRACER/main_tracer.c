@@ -145,6 +145,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface) {
 
 			memset(p_cfg_interface->trace_file.path, 0x00, FILE_PATH_MAX_STRING_LENGTH);
 			memcpy(p_cfg_interface->trace_file.path, argv[i + 1], string_length(argv[i + 1]));
+			p_cfg_interface->output.file = 1;
 
 			MAIN_CFG_DEBUG_MSG("command_line_parser() - Using Trace-File: %s\n", p_cfg_interface->trace_file.path);
 			
