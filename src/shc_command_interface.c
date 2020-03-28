@@ -329,6 +329,7 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 
 	if (get_output == COMMAND_INTERFACE_IGNORE_OUTPUT) {
+		COMMAND_DEBUG_MSG("cmd_handler_run_execution() - Ignoring output");
 		system((const char*)p_cmd->command.payload);
 		return NO_ERR;
 	}
@@ -340,7 +341,7 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 		COMMAND_DEBUG_MSG("cmd_handler_run_execution() - popen has FAILED !!! --- error: Command not found\n");
 		return ERR_BAD_CMD;
 	}
-	
+
 	while( !feof(p_pipe) ) {
 	
 		char t_buffer[COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER];		
@@ -349,6 +350,11 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 		}
 		
 		u8 byte_count = string_length(t_buffer);
+
+		if (GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length < byte_count )  {
+			byte_count = GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->answer.length;
+		}
+
 		memcpy(p_cmd->answer.payload + p_cmd->answer.length, t_buffer, byte_count);
 		p_cmd->answer.length += byte_count;
 	}
