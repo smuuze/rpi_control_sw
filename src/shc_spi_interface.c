@@ -158,8 +158,8 @@ u8 spi_transfer(SPI_INTERFACE* p_spi_handle, size_t num_bytes, const u8* p_buffe
 	u8 err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_MESSAGE(1), &spi_tr);
 	SLAVE_CS_pull_up(); //gpio_set_state(&ce_pin, GPIO_ON);
 
-	hex_dump((const void*)tmp_tx_buffer, num_bytes, 32, "TX");
-	hex_dump((const void*)tmp_rx_buffer, num_bytes, 32, "RX");
+	//hex_dump((const void*)tmp_tx_buffer, num_bytes, 32, "TX");
+	//hex_dump((const void*)tmp_rx_buffer, num_bytes, 32, "RX");
 
 	if (p_buffer_to != NULL) {
 		memcpy(p_buffer_to, tmp_rx_buffer, num_bytes);
