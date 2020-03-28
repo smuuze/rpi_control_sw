@@ -1,9 +1,17 @@
 #
-# Chipdesign 2013 - C Firmware
+# SHC Tracer
 #
 # Author: Sebastian Lesse
 #
 # ----------------------------------------
+
+VERSION_MAJOR		:= 1
+VERSION_MINOR		:= 8
+
+# --------- Modules
+
+MODULES			=
+#MODULES 		+= LCD
 
 
 # --------- Toolchain Path
@@ -75,8 +83,6 @@ MSG_FINISH		:= --------------- Make done ---------------
 
 # --------- Application Properties (Target / Working dir / ...)
 
-VERSION_MAJOR		:= 1
-VERSION_MINOR		:= 7
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 OBJECT_DIRECTORY	:= obj
@@ -91,11 +97,6 @@ FORMAT			:= ihex
 TARGET			:= shcTracer
 TARGET_DAEMON		:= 
 TARGET_SERVICE		:= s
-
-# --------- Modules
-
-MODULES			=
-#MODULES 		+= LCD
 
 # --------- Include Path
 
