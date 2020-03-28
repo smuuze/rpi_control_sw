@@ -280,6 +280,7 @@ int main(int argc, char* argv[]) {
 					
 						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface);
 						if (err_code != NO_ERR) {
+							MAIN_DEBUG_MSG("main() - cmd_handler_send_command() has FAILED !!! --- (ERR: %d)\n", err_code);
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Sending Report-Command has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 							LCD_PRINTF("... COM ERR !!!");
 							restore_last_file_pointer(&myCmdInterface.report_file);
@@ -288,6 +289,7 @@ int main(int argc, char* argv[]) {
 
 						err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS);
 						if (err_code != NO_ERR) {
+							MAIN_DEBUG_MSG("main() - cmd_handler_receive_answer() has FAILED !!! --- (ERR: %d)\n", err_code);
 							LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Receive Report-Answer has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 							LCD_PRINTF("... COM ERR !!!");
 							restore_last_file_pointer(&myCmdInterface.report_file);
@@ -438,7 +440,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			if ((myCmdInterface.is_active != 0) && (myCmdInterface.fail_counter > CMD_MAXIMUM_COM_FAIL_COUNT - 1)) {
-				MAIN_DEBUG_MSG("main() - Connection to Control-Board has been lost !!! ---\n");
+				MAIN_DEBUG_MSG("main() - FAIL_COUNTER = %d - Connection to Control-Board has been lost !!! ---\n", myCmdInterface.fail_counter);
 				LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Connection to Control-Board has been lost !!! ---");
 				LCD_PRINTF("Board lost!!!");
 
