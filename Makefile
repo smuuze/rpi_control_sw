@@ -1,9 +1,18 @@
 #
-# Chipdesign 2013 - C Firmware
-#
-# Author: Sebastian Lesse
+# Smart Home Client 
+# Sebastian Lesse
 #
 # ----------------------------------------
+
+
+VERSION_MAJOR		:= 4
+VERSION_MINOR		:= 2
+
+# --------- Modules
+
+MODULES			=
+MODULES 		+= LCD
+
 
 
 # --------- Toolchain Path
@@ -75,8 +84,6 @@ MSG_FINISH		:= --------------- Make done ---------------
 
 # --------- Application Properties (Target / Working dir / ...)
 
-VERSION_MAJOR		:= 4
-VERSION_MINOR		:= 1
 VERSION			:= $(VERSION_MAJOR).$(VERSION_MINOR)
 
 OBJECT_DIRECTORY	:= obj
@@ -91,11 +98,6 @@ FORMAT			:= ihex
 TARGET			:= SmartHomeClient
 TARGET_DAEMON		:= shcd
 TARGET_SERVICE		:= shc_service
-
-# --------- Modules
-
-MODULES			=
-MODULES 		+= LCD
 
 # --------- Include Path
 
