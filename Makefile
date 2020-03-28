@@ -6,7 +6,7 @@
 
 
 VERSION_MAJOR		:= 4
-VERSION_MINOR		:= 2
+VERSION_MINOR		:= 3
 
 # --------- Modules
 
