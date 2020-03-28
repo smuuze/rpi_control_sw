@@ -100,6 +100,32 @@ static void main_connect_mqtt_host(CFG_INTERFACE* p_cfgInterface) {
 }
 */
 
+void thread_print_trace_object_prepare_output(TRACE_OBJECT* p_trace_obj, char* p_string, u8 output_level) {
+
+			
+	switch (p_trace_obj->type) {
+		default:
+		case TRACE_OBJECT_TYPE_PASS:
+			sprintf(p_string, "%s:%d - %s\n", p_trace_obj->file_name, p_trace_obj->line_number, p_trace_obj->source_line);
+			break;
+
+		case TRACE_OBJECT_TYPE_BYTE:
+			sprintf(p_string, "%s:%d - %s\n\t - Data: %d (0x%02X)\n", p_trace_obj->file_name, p_trace_obj->line_number, p_trace_obj->source_line, p_trace_obj->data.byte, p_trace_obj->data.byte);
+			break;
+
+		case TRACE_OBJECT_TYPE_WORD:
+			sprintf(p_string, "%s:%d - %s\n\t - Data: %d (0x%04X)\n", p_trace_obj->file_name, p_trace_obj->line_number, p_trace_obj->source_line, p_trace_obj->data.word, p_trace_obj->data.word);
+			break;
+
+		case TRACE_OBJECT_TYPE_LONG:
+			sprintf(p_string, "%s:%d - %s\n\t - Data: %d (0x%08X)\n", p_trace_obj->file_name, p_trace_obj->line_number, p_trace_obj->source_line, p_trace_obj->data.integer, p_trace_obj->data.integer);
+			break;
+
+		case TRACE_OBJECT_TYPE_ARRAY:
+			break;
+	}
+}
+
 void* thread_print_trace_object_run(void* p_arg) {
 
 	THREAD_DEBUG_MSG("thread_print_trace_object_run() - Thread started\n");
@@ -135,28 +161,7 @@ void* thread_print_trace_object_run(void* p_arg) {
 		}
 
 		char trace_line[config_MAX_LENGTH_OF_FILE_LINE];
-			
-		switch (trace_obj.type) {
-			default:
-			case TRACE_OBJECT_TYPE_PASS:
-				sprintf(trace_line, "%s:%d - %s\n", trace_obj.file_name, trace_obj.line_number, trace_obj.source_line);
-				break;
-
-			case TRACE_OBJECT_TYPE_BYTE:
-				sprintf(trace_line, "%s:%d - %s\n\t - Data: %d (0x%02X)\n", trace_obj.file_name, trace_obj.line_number, trace_obj.source_line, trace_obj.data.byte, trace_obj.data.byte);
-				break;
-
-			case TRACE_OBJECT_TYPE_WORD:
-				sprintf(trace_line, "%s:%d - %s\n\t - Data: %d (0x%04X)\n", trace_obj.file_name, trace_obj.line_number, trace_obj.source_line, trace_obj.data.word, trace_obj.data.word);
-				break;
-
-			case TRACE_OBJECT_TYPE_LONG:
-				sprintf(trace_line, "%s:%d - %s\n\t - Data: %d (0x%08X)\n", trace_obj.file_name, trace_obj.line_number, trace_obj.source_line, trace_obj.data.integer, trace_obj.data.integer);
-				break;
-
-			case TRACE_OBJECT_TYPE_ARRAY:
-				break;
-		}
+		thread_print_trace_object_prepare_output(&trace_obj, trace_line, 1);
 		//sprintf(trace_line, "Length: %03d | Type: %d | Line: %04d | FILE: %s", trace_obj.length, trace_obj.type, trace_obj.line_number, trace_obj.file_name);
 
 		// if console is activated
