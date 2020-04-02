@@ -11,6 +11,7 @@
 #define _SHC_COMMAND_INTERFACE_H_
 
 #include "shc_project_configuration.h"
+#include "shc_common_configuration.h"
 #include "shc_common_types.h"
 #include "shc_file_interface.h"
 #include "shc_gpio_interface.h"
@@ -69,7 +70,7 @@ void restore_last_file_pointer(FILE_INTERFACE* p_file);
 /*!
  *
  */
-void cmd_handler_init(void);
+void cmd_handler_init(CFG_INTERFACE* p_cfgInterface);
 
 /*!
  *
