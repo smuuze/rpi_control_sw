@@ -80,20 +80,27 @@ u8 file_create(FILE_INTERFACE* p_file) {
 
 u8 file_open(FILE_INTERFACE* p_file) {
 
+	file_close(p_file);
+
 	p_file->handle = fopen((const char*)p_file->path, "r");
 	if (p_file->handle == NULL) {
 		FILE_DEBUG_MSG("file_open() - Open file has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_file->path,  EXIT_FAILURE);
 		return 0;
 	}
 
-	FILE_DEBUG_MSG("file_open() - FILE: %s\n", p_file->path);
+	//FILE_DEBUG_MSG("file_open() - FILE: %s\n", p_file->path);
 	return 1;
 }
 
 void file_close(FILE_INTERFACE* p_file) {
 
-	FILE_DEBUG_MSG("file_close() - FILE: %s\n", p_file->path);
+	if (p_file->handle == NULL) {
+		return;
+	}
+
+	//FILE_DEBUG_MSG("file_close() - FILE: %s\n", p_file->path);
 	fclose(p_file->handle);
+	p_file->handle = NULL;
 }
 
 u16 file_read_line(FILE* file_handle, char* p_buffer_to, u16 num_max_bytes) {
@@ -142,7 +149,7 @@ u16 file_read_next_line(FILE_INTERFACE* p_file, char* next_line, u16 max_length)
 	
 	u16 num_bytes = file_read_line(p_file->handle, next_line, max_length);
 
-	FILE_DEBUG_MSG("file_read_next_line() - FILE: %s - LINE: %s\n", p_file->path, next_line);
+	//FILE_DEBUG_MSG("file_read_next_line() - FILE: %s - LINE: %s\n", p_file->path, next_line);
 	return num_bytes;
 }
 
