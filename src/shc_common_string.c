@@ -35,31 +35,31 @@ void hex_dump(const void *src, size_t length, size_t line_size, char *prefix) {
 	const unsigned char *address = src;
 	const unsigned char *line = address;
 
-	STRING_DEBUG_MSG("%s | ", prefix);
+	printf("%s | ", prefix);
 	
 	while (length-- > 0) {
 	
-		STRING_DEBUG_MSG("%02X ", *address++);		
+		printf("%02X ", *address++);		
 		if (!(++i % line_size) || (length == 0 && i % line_size)) {
 
 			if (length == 0) {			
 				while (i++ % line_size) {
-					STRING_DEBUG_MSG("__ ");
+					printf("__ ");
 				}
 			}
 			
-			STRING_DEBUG_MSG(" | ");  /* right close */			
+			printf(" | ");  /* right close */			
 			while (line < address) {
 				
 				#ifdef DEBUG_ENABLED
 					unsigned char c = *line++;
-					STRING_DEBUG_MSG("%c", (c < 33 || c == 255) ? 0x2E : c);
+					printf("%c", (c < 33 || c == 255) ? 0x2E : c);
 				#endif
 			}
 			
-			STRING_DEBUG_MSG("\n");			
+			printf("\n");			
 			if (length > 0 ) {
-				STRING_DEBUG_MSG("%s | ", prefix);
+				printf("%s | ", prefix);
 			}
 		}
 	}
