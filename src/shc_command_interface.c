@@ -11,6 +11,7 @@
 
 #include "shc_timer.h"
 #include "shc_project_configuration.h"
+#include "shc_common_configuration.h"
 #include "shc_common_types.h"
 #include "shc_common_string.h"
 #include "shc_debug_interface.h"
@@ -29,42 +30,46 @@
 
 GPIO_INTERFACE_INCLUDE_INOUT(REQUEST_PIN)
 
-TIME_MGMN_BUILD_TIMER(request_timer)
+TIME_MGMN_BUILD_TIMER(REQUEST_TIMER)
+
+static CFG_INTERFACE* p_cfgInterface;
 
 // ---- STATIC FUNCTIONS --------------------------------------------------------
 
 static u8 cmd_handler_request_device(void) {
 
-	request_timer_start();
+	REQUEST_TIMER_start();
 	
 	// wait for high level if not present
 	while (REQUEST_PIN_is_low_level()) {
 
 		usleep(5000); // wait for HW to be ready
 
-		if (request_timer_is_up(CMD_ACTIVATE_TIMEOUT_MS) != 0) {
-			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for high-level of ready-pin has FAIELD !!! ---\n");
+		if (REQUEST_TIMER_is_up(CMD_ACTIVATE_TIMEOUT_MS) != 0) {
+			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for high-level of ready-pin has FAILED !!! --- (Time elapsed : %d) \n", REQUEST_TIMER_elapsed());
+			LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Timeout on waiting for Low-Level of READY-PIN while requesting control-board (Time elapsed: %d)", REQUEST_TIMER_elapsed());
 			return ERR_COMMUNICATION;
 		}
 	}
 	
 	REQUEST_PIN_drive_low();
 	
-	request_timer_start();
-	while (request_timer_is_up(CMD_REQUEST_TIME_MS) == 0) {	
+	REQUEST_TIMER_start();
+	while (REQUEST_TIMER_is_up(CMD_REQUEST_TIME_MS) == 0) {	
 		usleep(5000); // wait for HW to be ready
 	}
 	
 	REQUEST_PIN_no_pull();
 	
 	// wait for low level
-	request_timer_start();
+	REQUEST_TIMER_start();
 	while (REQUEST_PIN_is_high_level()) {
 
 		usleep(5000); // wait for HW to be ready
 
-		if (request_timer_is_up(CMD_ACTIVATE_TIMEOUT_MS) != 0) {
-			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for low-level of ready-pin has FAIELD !!! ---\n");
+		if (REQUEST_TIMER_is_up(CMD_ACTIVATE_TIMEOUT_MS) != 0) {
+			COMMAND_DEBUG_MSG("cmd_handler_request_device() - ERROR on sending command - wait for low-level of ready-pin has FAILED !!! ---\n");
+			LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Timeout on waiting for High-Level of READY-PIN while requesting control-board");
 			return ERR_COMMUNICATION;
 		}
 	}
@@ -78,8 +83,8 @@ void restore_last_file_pointer(FILE_INTERFACE* p_file) {
 	p_file->act_file_pointer = p_file->last_file_pointer;
 }
 
-void cmd_handler_init(void) {
-	
+void cmd_handler_init(CFG_INTERFACE* p_cfg) {
+	p_cfgInterface = p_cfg;
 }
 
 u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFACE* p_file) {
@@ -99,6 +104,7 @@ u8 cmd_handler_prepare_command_from_file(COMMAND_INTERFACE* p_cmd, FILE_INTERFAC
 	p_file->handle = fopen(p_file->path, "r");
 	if (p_file->handle == NULL) {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_command_from_file() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_file->path,  EXIT_FAILURE);
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Command-File not found !!! (FILE:%s)", p_file->path);
 		return ERR_FILE_OPEN;
 	}
 
@@ -246,6 +252,7 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 
 	if (file_open(&p_cmd->command_file) == 0) {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Report-File not found !!! (FILE:%s)", path);
 		return ERR_FILE_OPEN;
 	}
 
@@ -279,6 +286,7 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 
 	} else {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - ERROR: Unknown Command (\"%s\")\n", p_cmd->message.payload);
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Unknown report-command: %s", p_cmd->message.payload);
 		return ERR_BAD_CMD;
 	}
 }
@@ -322,6 +330,7 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 
 	} else {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - ERROR: Unknown Execution (\"%s\")\n", p_cmd->message.payload);
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Unknown execution-command: %s", p_cmd->message.payload);
 		return ERR_BAD_CMD;
 	}
 }
@@ -387,7 +396,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 	switch (p_com->type) {
 		case SPI :
 
-			request_timer_start();
+			REQUEST_TIMER_start();
 			
 			// Check if there is a old answer pending on the other side
 			err_code = spi_transfer (
@@ -412,7 +421,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 
 			p_cmd->command.length -= 1;
 			
-			while (request_timer_is_up(1) == 0) {
+			while (REQUEST_TIMER_is_up(1) == 0) {
 			
 			}
 
@@ -507,6 +516,8 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 		default:
 			break;
 	}
+
+	hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
 
 	#if COMMAND_DEBUG_MSG != noDEBUG_MSG
 	command_handling_duration = mstime_get_time() - command_handling_duration;
