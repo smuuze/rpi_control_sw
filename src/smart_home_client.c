@@ -154,12 +154,12 @@ int main(int argc, char* argv[]) {
 	LCD_PRINTF("INIT: GPIO");
 
 	gpio_initialize(&myGpioInterface);
+	cmd_handler_init(&myCfgInterface);
 
 	LCD_PRINTF("... OK");
 
 	myMqttInterface.initialized = 0;
 	myMqttInterface.connection_lost = 1;
-
 
 	REPORT_TIMER_start();
 	DATETIME_TIMER_start();
@@ -732,8 +732,6 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 	spi_init(&myComInterface.data.spi);
 
 	LCD_PRINTF("... OK");
-			
-	cmd_handler_init();
 
 	REQUEST_PIN_init();
 	REQUEST_PIN_pull_up();
