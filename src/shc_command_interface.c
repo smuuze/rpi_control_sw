@@ -517,14 +517,8 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 			break;
 	}
 
+	#ifdef DEBUG_ENABLED
 	hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
-
-	#if COMMAND_DEBUG_MSG != noDEBUG_MSG
-	command_handling_duration = mstime_get_time() - command_handling_duration;
-	COMMAND_DEBUG_MSG("------> Command Execution-Time: %d ms\n", command_handling_duration);
-	COMMAND_DEBUG_MSG("------> Low-Level-Time: %d ms\n", low_level_waiting_time);
-	COMMAND_DEBUG_MSG("------> High-Level-Time: %d ms\n", high_level_waiting_time);
-	COMMAND_DEBUG_MSG("------> Transfer-Time: %d ms\n", transfer_time);
 	#endif
 
 	return err_code;
