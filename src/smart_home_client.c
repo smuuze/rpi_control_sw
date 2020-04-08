@@ -31,7 +31,7 @@
 
 // -------- DEBUGGING -------------------------------------------------------------------
 
-#define MAIN_DEBUG_MSG					noDEBUG_MSG
+#define MAIN_DEBUG_MSG					DEBUG_MSG
 #define MAIN_CFG_DEBUG_MSG				noDEBUG_MSG
 
 // -------- Command-Code ----------------------------------------------------------------
@@ -47,7 +47,7 @@
 
 // -------- STATIC FUNCTION PROTOTYPES --------------------------------------------------
 
-static void main_reset_control_board(void);
+static void main_reset_control_board(CFG_INTERFACE* p_cfgInterface);
 
 
 /*!
@@ -147,19 +147,28 @@ int main(int argc, char* argv[]) {
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting SmartHomeClient Deamon v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 	
 	LCD_PRINTF("Welcome to:");
-	LCD_PRINTF("SHC v%d.%d", VERSION_MAJOR, VERSION_MINOR);	
+	LCD_PRINTF("SHC v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 	MAIN_DEBUG_MSG("main() - INITIALIZE GPIO INTERFACE\n");
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize GPIO-Interface");
 	LCD_PRINTF("INIT: GPIO");
 
 	gpio_initialize(&myGpioInterface);
+
+	LCD_PRINTF("... OK");
+
+	MAIN_DEBUG_MSG("main() - INITIALIZE CFG INTERFACE\n");
+	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Initialize Command-Interface");
+	LCD_PRINTF("INIT: CMD");
+
 	cmd_handler_init(&myCfgInterface);
 
 	LCD_PRINTF("... OK");
 
 	myMqttInterface.initialized = 0;
 	myMqttInterface.connection_lost = 1;
+
+	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting Application");
 
 	REPORT_TIMER_start();
 	DATETIME_TIMER_start();
@@ -263,6 +272,7 @@ int main(int argc, char* argv[]) {
 			if (myMqttInterface.msg_delivered && REPORT_TIMER_is_up(mySchedulingInterface.report.interval)) {
 
 				MAIN_DEBUG_MSG("main() - Report Handling - Time : %d \n", mstime_get_time());
+				LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Start Report-Handling");
 				LCD_PRINTF("Report Handling");
 				
 				while ((err_code = cmd_handler_prepare_command_from_file(&myCmdInterface, &myCmdInterface.report_file)) == NO_ERR) {
@@ -680,9 +690,10 @@ void command_line_usage(void) {
 }
 
 
-static void main_reset_control_board(void) {
+static void main_reset_control_board(CFG_INTERFACE* p_cfgInterface) {
 
-	MAIN_DEBUG_MSG("reset_device() - RESETTING DEVICE !!!\n");
+	MAIN_DEBUG_MSG("main_reset_control_board() - RESETTING DEVICE !!!\n");
+	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Going to reset Control-Board");
 
 	RESET_PIN_drive_low();	
 	RESET_TIMER_start();	
@@ -701,12 +712,13 @@ static void main_reset_control_board(void) {
 		usleep(5000);
 
 		if (RESET_TIMER_is_up(DEVICE_STARTUP_TIMEOUT_MS) != 0) {
-			MAIN_DEBUG_MSG("reset_device() - Reset device has FAILED !!! --- (Timeout)\n");
+			MAIN_DEBUG_MSG("main_reset_control_board() - Reset Control-Board  has FAILED !!! --- (Timeout)\n");
 			break;
 		}
 	}
 	
-	MAIN_DEBUG_MSG("reset_device() - Device ready after %d ms\n", RESET_TIMER_elapsed());
+	MAIN_DEBUG_MSG("main_reset_control_board() - Device ready after %d ms\n", RESET_TIMER_elapsed());
+	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Reset of Control-Board done");
 }
 
 static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_INTERFACE* p_cmdInterface, COM_INTERFACE* p_comInterface) {
@@ -739,7 +751,7 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 	RESET_PIN_init();
 	RESET_PIN_pull_up();
 
-	main_reset_control_board();
+	main_reset_control_board(p_cfgInterface);
 
 	p_cmdInterface->is_active = 1;
 
@@ -750,24 +762,42 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 	SET_MESSAGE(&p_cmdInterface->message, CMD_VERSION_STR, CMD_VERSION_LEN);
 
 	if (cmd_handler_prepare_command(p_cmdInterface) != NO_ERR) {
+
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - preparing command has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - preparing command has FAILED");
 		LCD_PRINTF("err: PREPARE");
-		p_cmdInterface->is_active = 0;
 
-	} else if (cmd_handler_send_command(p_cmdInterface, p_comInterface) != NO_ERR) {
+		p_cmdInterface->is_active = 0;
+		return;
+	}
+
+	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Sending Version-Command");
+
+	if (cmd_handler_send_command(p_cmdInterface, p_comInterface) != NO_ERR) {
+
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - sending command has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - sending command has FAILED");
 		LCD_PRINTF("err: SEND");
-		p_cmdInterface->is_active = 0;
 
-	} else if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
+		p_cmdInterface->is_active = 0;
+		return;
+	}
+
+	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Receiving Answer of Version-Command");
+	
+	if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
+
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Set Command-Interface to inactive - receiving answer has FAILED");
 		LCD_PRINTF("err: RECEIVE");
-		p_cmdInterface->is_active = 0;
 
+		p_cmdInterface->is_active = 0;
+		return;
 	}
+
+	MAIN_DEBUG_MSG("main_connect_control_board() - Control-Board is connected\n");
+	LCD_PRINTF("... OK");
+	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Control-Board is connected");
 }
 
 static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFACE* p_cfgInterface) {
