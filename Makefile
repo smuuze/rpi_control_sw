@@ -5,8 +5,7 @@
 # ----------------------------------------
 
 
-VERSION_MAJOR		:= 4
-VERSION_MINOR		:= 4
+include version.mk
 
 # --------- Modules
 
