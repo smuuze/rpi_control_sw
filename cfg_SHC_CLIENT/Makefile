@@ -40,7 +40,7 @@ AVR_DUDE_PROGRAMMER	:= linuxgpio
 #AVR_DUDE_UPDATE_PATH	:= ../rpi_control_fw/cfg_rpi_hat_ir_board
 #AVR_DUDE_UPDATE_FILE	:= RPI_Hat_IR_Board.hex
 
-AVR_DUDE_UPDATE_PATH	:= ../rpi_control_fw/cfg_rpi_hat_control_board_v2
+AVR_DUDE_UPDATE_PATH	:= ../../rpi_control_fw/cfg_rpi_hat_control_board_v2
 AVR_DUDE_UPDATE_FILE	:= RPI_Hat_ControlBoard_V2.hex
 
 AVR_DUDE_CFG_FILE	:= avrdude/avrdude.conf
@@ -91,7 +91,7 @@ CONFIG_DIRECTORY	:= cfg
 DEBUG_DIRECTORY		:= $(OBJECT_DIRECTORY)/debug
 DEPENDENCY_DIRECTORY	:= $(OBJECT_DIRECTORY)/dependency
 RELEASE_DIRECTORY	:= release/v$(VERSION)
-APP_PATH		:= src
+APP_PATH		:= ../src
 FORMAT			:= ihex
 
 TARGET			:= SmartHomeClient
@@ -114,7 +114,7 @@ LIBS += -l wiringPi
 # --------- Source File List
 
 CSRCS = 
-CSRCS += $(APP_PATH)/smart_home_client.c
+CSRCS += main_shc_client.c
 CSRCS += $(APP_PATH)/shc_timer.c
 CSRCS += $(APP_PATH)/shc_command_interface.c
 CSRCS += $(APP_PATH)/shc_common_string.c
@@ -124,6 +124,7 @@ CSRCS += $(APP_PATH)/shc_gpio_interface.c
 CSRCS += $(APP_PATH)/shc_mqtt_interface.c
 CSRCS += $(APP_PATH)/shc_qeue_interface.c
 CSRCS += $(APP_PATH)/shc_spi_interface.c
+CSRCS += $(APP_PATH)/shc_command_line_parser.c
 
 ifneq '' '$(findstring LCD,$(MODULES))'
 CSRCS += $(APP_PATH)/shc_lcd_interface.c

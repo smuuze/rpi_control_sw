@@ -16,6 +16,7 @@
 #include "shc_gpio_interface.h"
 #include "shc_debug_interface.h"
 #include "shc_lcd_interface.h"
+#include "shc_command_line_parser.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -79,7 +80,6 @@ void command_line_usage(void);
 
 GPIO_INTERFACE_BUILD_INOUT(RESET_PIN, GPIO_RESET_PIN_NUM)
 GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
-GPIO_INTERFACE_BUILD_INOUT(EVENT_PIN, GPIO_REQUEST_PIN_NUM)
 
 TIME_MGMN_BUILD_TIMER(RESET_TIMER)
 TIME_MGMN_BUILD_TIMER(MQTT_CONNECT_TIMER)
@@ -144,9 +144,9 @@ int main(int argc, char* argv[]) {
 	char welcome_message[128];
 	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
 	MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
-	
+
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting SmartHomeClient Deamon v%d.%d", VERSION_MAJOR, VERSION_MINOR);
-	
+
 	LCD_PRINTF("Welcome to:");
 	LCD_PRINTF("SHC v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
@@ -178,18 +178,18 @@ int main(int argc, char* argv[]) {
 
 		usleep(50000); // reduce cpu-load
 
-		if (myCmdInterface.is_active == 0) {			
-			main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface);
-		}
-
 		if (myMqttInterface.connection_lost) {
 			SET_MESSAGE(&myMqttInterface.message, welcome_message, string_length(welcome_message));
 			main_connect_mqtt_host(&myMqttInterface, &myCfgInterface);
-		}		
+		}
 
 		while (myMqttInterface.connection_lost == 0) {
 
 			usleep(50000); // reduce cpu-load
+
+			if (myCmdInterface.is_active == 0) {
+				main_connect_control_board(&myCfgInterface, &myCmdInterface, &myComInterface);
+			}
 
 			mqtt_keep_alive();
 
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
 							if ((err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Prepare Com-Command has FAILED !!! --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 								LCD_PRINTF("... COM ERR !!!");
-							
+
 							} else if ((err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS)) != NO_ERR) {
 								LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Executeion of Com-Command has FAILED !!! --- (Com:%s / Err:%d)", myCmdInterface.message.payload, err_code);
 								LCD_PRINTF("... COM ERR !!!");
@@ -273,9 +273,9 @@ int main(int argc, char* argv[]) {
 			if (myMqttInterface.msg_delivered && REPORT_TIMER_is_up(mySchedulingInterface.report.interval)) {
 
 				MAIN_DEBUG_MSG("main() - Report Handling - Time : %d \n", mstime_get_time());
-				LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Start Report-Handling");
+				//LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Start Report-Handling");
 				LCD_PRINTF("Report Handling");
-				
+
 				while ((err_code = cmd_handler_prepare_command_from_file(&myCmdInterface, &myCmdInterface.report_file)) == NO_ERR) {
 
 					#if DEBUG_DISABLE_REPORT_PROCESSING == 1
@@ -287,10 +287,10 @@ int main(int argc, char* argv[]) {
 					memcpy(myCmdInterface.message.payload + myCmdInterface.message.length, "=", 1);
 					myCmdInterface.message.length += 1;
 
-					LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Performing Command: %s)", (char*)myCmdInterface.message.payload);
-					
+					//LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Performing Command: %s)", (char*)myCmdInterface.message.payload);
+
 					if ( (cmd_handler_is_communication_command(&myCmdInterface) != 0) && (myCmdInterface.is_active != 0) ) {
-					
+
 						err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface);
 						if (err_code != NO_ERR) {
 							MAIN_DEBUG_MSG("main() - cmd_handler_send_command() has FAILED !!! --- (ERR: %d)\n", err_code);
@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
 							MAIN_DEBUG_MSG("main() - Incorrect Status-Code --- (ERR: %d)\n", err_code);
 							break;
 						}
-					
+
 					} else if (cmd_handler_is_execution_command(&myCmdInterface) != 0) {
 
 						if ((err_code = cmd_handler_run_execution(&myCmdInterface, COMMAND_INTERFACE_CATCH_OUTPUT)) != NO_ERR) {
@@ -324,9 +324,8 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
-					u8 string_is_byte_array = cmd_handler_is_communication_command(&myCmdInterface) ? 1 : 0;					
+					u8 string_is_byte_array = cmd_handler_is_communication_command(&myCmdInterface) ? 1 : 0;
 					err_code = cmd_handler_prepare_report_message(&myCmdInterface, err_code, string_is_byte_array);
-					
 					if (err_code != NO_ERR) {
 						LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "- Prepare Report-Message has FAILED !!! --- (error-code = %d / Command: %s)", err_code, (char*)myCmdInterface.message.payload);
 						continue;
@@ -359,7 +358,7 @@ int main(int argc, char* argv[]) {
 
 					break;
 				}
-				
+
 				if (err_code == ERR_INVALID_ARGUMENT) {
 
 					MAIN_DEBUG_MSG("main() - Invalid Argument Exception on Report-Handling\n");
@@ -385,7 +384,7 @@ int main(int argc, char* argv[]) {
 				&& mstime_is_time_up(mySchedulingInterface.event.reference, mySchedulingInterface.event.interval) != 0) {
 
 				MAIN_DEBUG_MSG("main() - Event Handling (Time : %d)\n", mySchedulingInterface.event.reference);
-				
+
 				while (myMqttInterface.msg_delivered == 0 ) {
 					MAIN_DEBUG_MSG(".");
 					usleep(5000);
@@ -461,7 +460,7 @@ int main(int argc, char* argv[]) {
 				myCmdInterface.fail_counter = 0;
 				break;
 			}
-			
+
 			if (myMqttInterface.connection_lost != 0) {
 				MAIN_DEBUG_MSG("main() - MQTT-CONNECTION LOST - ! - ! - ! -\n");
 				LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Connection to MQTT-Broker lost!");
@@ -469,13 +468,13 @@ int main(int argc, char* argv[]) {
 				break;
 			}
 		}
-	}		
-			
+	}
+
 	if (myMqttInterface.connection_lost != 0) {
 		//LOG_MSG(ERR_LEVEL_FATAL, &myCfgInterface.log_file, "Try reconnecting to MQTT-Broker!");
 
 		MQTTClient_disconnect(myMqttInterface.client, 10000);
-		MQTTClient_destroy(&myMqttInterface.client);		
+		MQTTClient_destroy(&myMqttInterface.client);
 	}
 
 	spi_deinit(&myComInterface.data.spi);
@@ -485,234 +484,27 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-// -------- COMMAND-LINE PARSING --------------------------------------------------------
-
-u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, COM_INTERFACE* p_com_interface, MQTT_INTERFACE* p_mqtt_interface, COMMAND_INTERFACE* p_cmd_interface, GPIO_INTERFACE* p_gpio_interface, SCHEDULING_INTERFACE* p_scheduling_interface) {
-
-	// --- Initialize Communication-Interface
-
-	p_scheduling_interface->report.interval = REPORT_SCHEDULE_DEFAULT_INTERVAL_MS;
-	p_scheduling_interface->event.interval = EVENT_SCHEDULE_DEFAULT_INTERVAL_MS;
-	p_scheduling_interface->configuration.interval = CONFIGURATION_SCHEDULE_DEFAULT_INTERVAL_MS;
-
-	// 48000  4800 	9600 	38400 	115200
-	p_com_interface->is_enabled = 0;
-	p_com_interface->data.spi.speed_hz = 9600;
-	p_com_interface->data.spi.bits_per_word = 8;
-	p_com_interface->data.spi.delay = 0;
-	p_com_interface->data.spi.mode = SPI_MODE_3;
-
-	p_mqtt_interface->quality_of_service = MQTT_QOS;
-	p_mqtt_interface->msg_delivered = 1;
-
-	p_gpio_interface->pin_num = GPIO_EVENT_PIN;
-	p_gpio_interface->is_input = 1;
-	p_gpio_interface->is_high_level = 0;
-	p_gpio_interface->match_event_level = 1;
-	p_gpio_interface->event_rised = 0;
-	p_gpio_interface->event_ref_time = 0;
-	p_gpio_interface->event_timeout = 1000;
-	p_gpio_interface->is_initialized = 0;
-	p_gpio_interface->sample_time_reference = 0;
-	p_gpio_interface->sample_timeout = 100;
-
-	p_cmd_interface->command_file.handle = 0;
-	p_cmd_interface->command_file.act_file_pointer = 0;
-	p_cmd_interface->report_file.handle = 0;
-	p_cmd_interface->report_file.act_file_pointer = 0;
-	p_cmd_interface->event_file.handle = 0;
-	p_cmd_interface->event_file.act_file_pointer = 0;
-	p_cmd_interface->is_active = 0;
-	p_cmd_interface->fail_counter = 0;
-
-	p_cfg_interface->log_file.act_file_pointer = 0;
-
-	memset(p_cfg_interface->cfg_file.path, 0x00, FILE_PATH_MAX_STRING_LENGTH);
-	memcpy(p_cfg_interface->cfg_file.path, CONFIGURATION_FILE_PATH, string_length(CONFIGURATION_FILE_PATH));
-
-	u8 i = 0;
-	for ( ; i < argc; i++) {
-
-		MAIN_CFG_DEBUG_MSG("command_line_parser() - Parsing cli-argument: %s\n", argv[i]);
-
-		if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CFG_FILE, string_length(COMMAND_LINE_ARGUMENT_CFG_FILE)) == 0) {
-
-			if (i + 1 >= argc) {
-				break;
-			}
-
-			memset(p_cfg_interface->cfg_file.path, 0x00, FILE_PATH_MAX_STRING_LENGTH);
-			memcpy(p_cfg_interface->cfg_file.path, argv[i + 1], string_length(argv[i + 1]));
-
-			MAIN_CFG_DEBUG_MSG("Using Config-File: %s\n", p_cfg_interface->cfg_file.path);
-			
-			// do not process the parameter as a new argument
-			i += 1;
-
-		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_LCD, string_length(COMMAND_LINE_ARGUMENT_LCD)) == 0) {
-			MAIN_CFG_DEBUG_MSG("command_line_parser() - Enabling LCD\n");
-			lcd_set_enabled(1);
-
-		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CONTROLLER, string_length(COMMAND_LINE_ARGUMENT_CONTROLLER)) == 0) {
-			MAIN_CFG_DEBUG_MSG("command_line_parser() - Enabling Control-Board\n");
-		}
-	}
-
-	char path[128];
-	sprintf(path, "%s", p_cfg_interface->cfg_file.path);
-
-	FILE* config_file_handle = fopen((const char*)p_cfg_interface->cfg_file.path, "r");
-	if (config_file_handle == NULL) {
-		MAIN_CFG_DEBUG_MSG("--- Open Configuration-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_cfg_interface->cfg_file.path,  EXIT_FAILURE);
-		return ERR_FILE_OPEN;
-	}
-
-	struct stat file_attribute;
-	stat(p_cfg_interface->cfg_file.path, &file_attribute);
-	p_cfg_interface->cfg_file.timestamp_last_modified = file_attribute.st_mtime;
-
-	char line[512];
-	char cfg_key[GENERAL_STRING_BUFFER_MAX_LENGTH];
-	char cfg_value[GENERAL_STRING_BUFFER_MAX_LENGTH];
-	u16 num_bytes = read_line(config_file_handle, line, 512);
-
-	while (num_bytes != 0) {
-	 
-		if (line[0] == '#') {
-			MAIN_CFG_DEBUG_MSG("command_line_parser() - Ignoring line: %s\n", line);
-			goto NEXT_CONFIG_LINE;
-		}
-
-		split_string('=', line, num_bytes, cfg_key, GENERAL_STRING_BUFFER_MAX_LENGTH, cfg_value, GENERAL_STRING_BUFFER_MAX_LENGTH);
-
-		u16 length_key = string_length(cfg_key);
-		if (length_key == 0) {
-			goto NEXT_CONFIG_LINE;
-		}
-
-		u16 length_value = string_length(cfg_value);
-		if (length_value == 0) {
-			goto NEXT_CONFIG_LINE;
-		}
-
-		//memset(cfg_key + length_key, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_key);
-		//memset(cfg_value + length_value, 0x00, GENERAL_STRING_BUFFER_MAX_LENGTH - length_value);
-
-		MAIN_CFG_DEBUG_MSG("command_line_parser() - key:%s : value:%s\n", cfg_key, cfg_value);
-
-		if (memcmp(cfg_key, CFG_NAME_MQTT_HOST_ADDR, length_key) == 0) {
-			memcpy(p_mqtt_interface->host_address, cfg_value, MQTT_HOST_ADDRESS_STRING_LENGTH);
-
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_MQTT_CLINET_ID, length_key) == 0) {
-			memcpy(p_mqtt_interface->client_id, cfg_value, MQTT_CLIENT_ID_STRING_LENGTH);
-
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_MQTT_TOPIC_NAME, length_key) == 0) {
-			memcpy(p_mqtt_interface->topic_name, cfg_value, MQTT_TOPIC_NAME_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_MQTT_WELCOME_MESSAGE, length_key) == 0) {
-			memcpy(p_mqtt_interface->welcome_msg, cfg_value, MQTT_WELCOME_MSG_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_MQTT_TIMEOUT, length_key) == 0) {
-			p_mqtt_interface->timeout_ms = MQTT_TIMEOUT;
-
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_COMMUNICATION_TYPE, length_key) == 0) {
-			p_com_interface->type = SPI;
-
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_COM_SPI_BAUDRATE, length_key) == 0) {
-			char *ptr;
-			p_com_interface->data.spi.speed_hz = (u32)strtol(cfg_value, &ptr, 10);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_COM_SPI_DEVICE, length_key) == 0) {
-			memcpy(p_com_interface->data.spi.device, cfg_value, COM_DEVICE_NAME_STRING_LENGTH);
-			p_com_interface->is_enabled = 1;
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_LOG_FILE_PATH, length_key) == 0) {
-			memcpy(p_cfg_interface->log_file.path, cfg_value, FILE_PATH_MAX_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_COMMAND_FILE_PATH, length_key) == 0) {
-			memcpy(p_cmd_interface->command_file.path, cfg_value, FILE_PATH_MAX_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_REPORT_FILE_PATH, length_key) == 0) {
-			memcpy(p_cmd_interface->report_file.path, cfg_value, FILE_PATH_MAX_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_EVENT_FILE_PATH, length_key) == 0) {
-			memcpy(p_cmd_interface->event_file.path, cfg_value, FILE_PATH_MAX_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_EXECUTION_FILE_PATH, length_key) == 0) {
-			memcpy(p_cmd_interface->execution_file.path, cfg_value, FILE_PATH_MAX_STRING_LENGTH);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_SCHEDULE_INTERVAL_REPORT_MS, length_key) == 0) {
-			char *ptr;
-			p_scheduling_interface->report.interval = (u32)strtol(cfg_value, &ptr, 10);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_SCHEDULE_INTERVAL_EVENT_MS, length_key) == 0) {
-			char *ptr;
-			p_scheduling_interface->event.interval = (u32)strtol(cfg_value, &ptr, 10);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_SCHEDULE_INTERVAL_CONFIG_MS, length_key) == 0) {
-			char *ptr;
-			p_scheduling_interface->configuration.interval = (u32)strtol(cfg_value, &ptr, 10);
-		} else
-
-		if (memcmp(cfg_key, CFG_NAME_LCD_ENABLE, length_key) == 0) {
-			char *ptr;
-			lcd_set_enabled((u32)strtol(cfg_value, &ptr, 10));
-		}
-
-		else {
-			MAIN_CFG_DEBUG_MSG("--- UNKNOWN CFG-KEY : %s\n", cfg_key);
-		}
-		
-		NEXT_CONFIG_LINE:
-		num_bytes = read_line(config_file_handle, line, 512);
-	}
-
-	return NO_ERR;
-}
-
-void command_line_usage(void) {
-
-}
-
+// -------- STATIC FUNCTION IMPLEMENTATAION  --------------------------------------------
 
 static void main_reset_control_board(CFG_INTERFACE* p_cfgInterface) {
 
 	MAIN_DEBUG_MSG("main_reset_control_board() - RESETTING DEVICE !!!\n");
 	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Going to reset Control-Board");
 
-	//RESET_PIN_drive_low();	
-	//RESET_TIMER_start();	
-	
+	//RESET_PIN_drive_low();
+	//RESET_TIMER_start();
+
 	while (RESET_TIMER_is_up(DEVICE_RESET_TIME_MS) == 0) { usleep(5000); }
 
 	//REQUEST_PIN_no_pull();
 	//RESET_PIN_pull_up();
 
 	RESET_TIMER_start();
-	
+
 	while (RESET_TIMER_is_up(DEVICE_STARTUP_TIME_MS) == 0) { usleep(5000); }
-	
+
 	while (REQUEST_PIN_is_low_level()) {
-					
+
 		usleep(5000);
 
 		if (RESET_TIMER_is_up(DEVICE_STARTUP_TIMEOUT_MS) != 0) {
@@ -720,7 +512,7 @@ static void main_reset_control_board(CFG_INTERFACE* p_cfgInterface) {
 			break;
 		}
 	}
-	
+
 	MAIN_DEBUG_MSG("main_reset_control_board() - Device ready after %d ms\n", RESET_TIMER_elapsed());
 	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Reset of Control-Board done");
 }
@@ -738,7 +530,7 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 		
 	BOARD_CONNECT_TIMER_start();
 		
-	if (p_comInterface->is_enabled == 0) {
+	if (p_comInterface->is_enabled == 0) {		
 		MAIN_DEBUG_MSG("main_connect_control_board() - COMMUNICATION INTERFACE is not enabled!\n");
 		LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Communication-Interface is not active");
 		return;
@@ -790,7 +582,7 @@ static void main_connect_control_board(CFG_INTERFACE* p_cfgInterface, COMMAND_IN
 	}
 
 	LOG_MSG(NO_ERR, &p_cfgInterface->log_file, "Receiving Answer of Version-Command");
-	
+
 	if (cmd_handler_receive_answer(p_cmdInterface, p_comInterface, CMD_RX_ANSWER_TIMEOUT_MS) != NO_ERR) {
 
 		MAIN_DEBUG_MSG("main_connect_control_board() - Set Command-Interface to inactive - receiving answer has FAILED !!! ---  \n");
