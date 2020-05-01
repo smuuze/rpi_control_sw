@@ -2,14 +2,26 @@
 # ------------------
 
 VERSION_MAJOR = 1
-VERSION_MINOR = 10
+VERSION_MINOR = 11
 
 # ------------------
 #
-# Log
+# Changelog
 #
-# 1.10
-# - CHANGE : version number is now in a seperate file
+# ------------------
 #
-# 1.9
-# - FIX: Opening source files in trace-parser has failed after a few minutes
+#	v1.11
+#
+#	- NEW: Traceoutput for Byte-Array as HEX-Dump
+#
+# ------------------
+#
+# 	v1.10
+#
+# 	- CHANGE : version number is now in a seperate file
+#
+# ------------------
+#
+#	v1.09
+#
+# 	- FIX: Opening source files in trace-parser has failed after a few minutes
