@@ -29,6 +29,9 @@ QEUE_INTERFACE_INCLUDE_QEUE(TRACE_OBJECT_QEUE)
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
+#ifndef config_MAX_LENGTH_OF_TRACE_OUTPUT_LINE
+#define config_MAX_LENGTH_OF_TRACE_OUTPUT_LINE		2048
+#endif
 
 // ---- STATIC DATA -------------------------------------------------------------
 
@@ -100,8 +103,52 @@ static void main_connect_mqtt_host(CFG_INTERFACE* p_cfgInterface) {
 }
 */
 
-void thread_print_trace_object_prepare_output(TRACE_OBJECT* p_trace_obj, char* p_string, u8 output_level) {
+static void thread_print_trace_object_get_hex_string(char* p_string, const void *src, size_t length, size_t line_size) {
+	
+	int i = 0;
+	const unsigned char *address = src;
+	const unsigned char *line = address;
+	char* p_string_addr = p_string;
 
+	sprintf(p_string_addr, "   ");
+	p_string_addr += 3;
+	
+	while (length-- > 0) {
+	
+		sprintf(p_string_addr, "%02X ", *address++);
+		p_string_addr += 3;
+
+		if (!(++i % line_size) || (length == 0 && i % line_size)) {
+
+			if (length == 0) {			
+				while (i++ % line_size) {
+					sprintf(p_string_addr, "__ ");
+					p_string_addr += 3;
+				}
+			}
+			
+			sprintf(p_string_addr, " | "); // right close
+			p_string_addr += 3;
+
+			while (line < address) {
+				
+				unsigned char c = *line++;
+				sprintf(p_string_addr, "%c", (c < 33 || c == 255) ? 0x2E : c);
+				p_string_addr += 1;
+			}
+			
+			sprintf(p_string_addr, "\n");
+			p_string_addr += 1;
+
+			if (length > 0 ) {
+				sprintf(p_string_addr, "   ");
+				p_string_addr += 3;
+			}
+		}
+	}
+}
+
+void thread_print_trace_object_prepare_output(TRACE_OBJECT* p_trace_obj, char* p_string, u8 output_level) {
 			
 	switch (p_trace_obj->type) {
 		default:
@@ -122,6 +169,8 @@ void thread_print_trace_object_prepare_output(TRACE_OBJECT* p_trace_obj, char* p
 			break;
 
 		case TRACE_OBJECT_TYPE_ARRAY:
+			sprintf(p_string, "%s:%d - %s\n", p_trace_obj->file_name, p_trace_obj->line_number, p_trace_obj->source_line);
+			thread_print_trace_object_get_hex_string(p_string + string_length(p_string), (const void*) p_trace_obj->data.array, p_trace_obj->data_length, 16);
 			break;
 	}
 }
@@ -160,7 +209,9 @@ void* thread_print_trace_object_run(void* p_arg) {
 			continue;
 		}
 
-		char trace_line[config_MAX_LENGTH_OF_FILE_LINE];
+		char trace_line[config_MAX_LENGTH_OF_TRACE_OUTPUT_LINE];
+		memset(trace_line, '\0', config_MAX_LENGTH_OF_TRACE_OUTPUT_LINE);
+
 		thread_print_trace_object_prepare_output(&trace_obj, trace_line, 1);
 		//sprintf(trace_line, "Length: %03d | Type: %d | Line: %04d | FILE: %s", trace_obj.length, trace_obj.type, trace_obj.line_number, trace_obj.file_name);
 
