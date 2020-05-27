@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
 			if (myMqttInterface.msg_delivered && REPORT_TIMER_is_up(mySchedulingInterface.report.interval)) {
 
 				MAIN_DEBUG_MSG("main() - Report Handling - Time : %d \n", mstime_get_time());
-				LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Start Report-Handling");
+				//LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Start Report-Handling");
 				LCD_PRINTF("Report Handling");
 				
 				while ((err_code = cmd_handler_prepare_command_from_file(&myCmdInterface, &myCmdInterface.report_file)) == NO_ERR) {
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
 					memcpy(myCmdInterface.message.payload + myCmdInterface.message.length, "=", 1);
 					myCmdInterface.message.length += 1;
 
-					LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Performing Command: %s)", (char*)myCmdInterface.message.payload);
+					//LOG_MSG(ERR_LEVEL_WARNING, &myCfgInterface.log_file, "Performing Command: %s)", (char*)myCmdInterface.message.payload);
 					
 					if ( (cmd_handler_is_communication_command(&myCmdInterface) != 0) && (myCmdInterface.is_active != 0) ) {
 					
