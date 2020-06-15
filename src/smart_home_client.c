@@ -39,13 +39,7 @@
 #define CMD_VERSION_STR					"version"
 #define CMD_VERSION_LEN					7
 
-
-// -------- TYPE-DEFINITIONS ------------------------------------------------------------
-
-
-
-
-// -------- STATIC FUNCTION PROTOTYPES --------------------------------------------------
+// --------------------------------------------------------------------------------------
 
 static void main_reset_control_board(CFG_INTERFACE* p_cfgInterface);
 
@@ -815,12 +809,10 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 	}
 
 	if (MQTT_CONNECT_TIMER_is_active() == 0) {
-		MQTT_CONNECT_TIMER_start();
-	}
-
-	if (MQTT_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
-		//MAIN_DEBUG_MSG("main_connect_mqtt_host() - Waiting for MQTT_CONNECTION_INTERVAL_TIMEOUT_MS\n");
-		return;
+		if (MQTT_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
+			//MAIN_DEBUG_MSG("main_connect_mqtt_host() - Waiting for MQTT_CONNECTION_INTERVAL_TIMEOUT_MS\n");
+			return;
+		}
 	}
 			
 	MQTT_CONNECT_TIMER_start();
