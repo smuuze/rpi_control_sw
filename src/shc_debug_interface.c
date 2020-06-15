@@ -22,18 +22,17 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-
-// ---- STATIC DATA -------------------------------------------------------------
-
-
-// ---- IMPLEMENTATION ----------------------------------------------------------
-
 /*!
  *
  */
-void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER_BIG* p_msg_from) {
+//void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER_BIG* p_msg_from)
+void log_message(FILE_INTERFACE* p_file, u8 error_level, char* p_msg_from) {
 	
-	char path[128];
+	if (string_length(p_file->path) == 0) {
+		return;
+	}
+
+	char path[1024];
 	sprintf(path, "%s", p_file->path);
 	//LOG_DEBUG_MSG("LOG-DEBUG: Using Log-File: %s \n", path);
 	
@@ -65,32 +64,31 @@ void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER_BIG* p_ms
 				LOG_DEBUG_MSG("log_message() - Renaming old file has FAILED !!! --- (error: %d)\n", err);
 		}
 	}
+		
+	LOG_DEBUG_MSG("log_message() - check for existing Log-File\n");
 	
 	if (file_is_existing(p_file) == 0) {
-		p_file->handle = fopen((const char*)path, "w");
-		LOG_DEBUG_MSG("log_message() - Log-File does not exists, will create it\n");	
-		
-	} else {
-		p_file->handle = fopen((const char*)path, "a");
-		//LOG_DEBUG_MSG("log_message() - Appending Log-Message to existing file \n");	
-	}	
-	
-	if (p_file->handle == NULL) {
-		LOG_DEBUG_MSG("log_message() - Open Log-File has FAILED !!! --- \n");
-		return;
+				
+		LOG_DEBUG_MSG("log_message() - Log-File not existing\n");
+
+		if (file_create(p_file)) {
+			LOG_DEBUG_MSG("log_message() - file_create() has FAILED !!! --- \n");
+			return;
+		}	
 	}
 	
 	char date_string[128];
 	memset(date_string, 0x00, 128);
 	
+	// get the actual date-time
 	FILE* pipe = popen("date", "r");
 	read_line(pipe, date_string, 128);
 	fclose(pipe);
 	
-	int err_code = fprintf(p_file->handle, "%s \t %d \t %s \r\n", date_string, error_level, p_msg_from->payload);
-	if (err_code < 0) {
-		LOG_DEBUG_MSG("log_message() - Writing File has FAILED !!! --- (ERROR: %d)\n", err_code);		
+	char new_line[1024];
+	sprintf(new_line, "%s \t %d \t %s \r\n", date_string, error_level, p_msg_from /*->payload*/);
+
+	if (file_append_line(p_file, new_line) == 0) {
+		LOG_DEBUG_MSG("log_message() - file_append_line() has FAILED !!! --- \n");
 	}
-		
-	fclose(p_file->handle);
 }

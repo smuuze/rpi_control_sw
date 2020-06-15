@@ -28,11 +28,10 @@
 
 #define noDEBUG_MSG(...)
 
-#define LOG_MSG(level, p_file, ...)		{								\
-							STRING_BUFFER_BIG log_msg;				\
-							sprintf((char*)log_msg.payload, __VA_ARGS__);		\
-							log_msg.length = string_length((char*)log_msg.payload);	\
-							log_message(p_file, level, &log_msg);			\
+#define LOG_MSG(level, p_file, ...)		{							\
+							char log_msg[1024];				\
+							sprintf(log_msg , __VA_ARGS__);			\
+							log_message(p_file, level, log_msg);		\
 						}
 
 #define EVENT_DEBUG_MSG				noDEBUG_MSG
@@ -53,6 +52,7 @@
 /*!
  *
  */
-void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER_BIG* p_msg_from);
+//void log_message(FILE_INTERFACE* p_file, u8 error_level, STRING_BUFFER_BIG* p_msg_from);
+void log_message(FILE_INTERFACE* p_file, u8 error_level, char* p_msg_from);
 
 #endif // _SHC_DEBUG_ITNERFACE_H_
