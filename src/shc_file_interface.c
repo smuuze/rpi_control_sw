@@ -75,6 +75,13 @@ u8 file_rename(FILE_INTERFACE* p_old_file, FILE_INTERFACE* p_new_file) {
 }
 
 u8 file_create(FILE_INTERFACE* p_file) {
+	p_file->handle = fopen((const char*)p_file->path, "w");
+
+	if (p_file->handle != NULL) {
+		file_close(p_file);
+		return 1;
+	} 
+
 	return 0;
 }
 
@@ -175,6 +182,8 @@ u16 file_read_specific_line(FILE_INTERFACE* p_file, u16 line_number, char* next_
 }
 
 u8 file_append_line(FILE_INTERFACE* p_file, char* new_line) {
+
+	file_close(p_file);
 	
 	p_file->handle = fopen((const char*)p_file->path, "a");
 	if (p_file->handle == NULL) {
@@ -184,6 +193,7 @@ u8 file_append_line(FILE_INTERFACE* p_file, char* new_line) {
 
 	int err_code = fprintf(p_file->handle, "%s\r\n", new_line);
 	fclose(p_file->handle);
+	p_file->handle = NULL;
 
 	if (err_code < 0) {
 		FILE_DEBUG_MSG("file_append_line() - Writing File has FAILED !!! --- (FILE: %s)\n", p_file->path);

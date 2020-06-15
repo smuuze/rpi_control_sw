@@ -41,6 +41,11 @@ u32 file_get_size(FILE_INTERFACE* p_file);
 /*!
  *
  */
+u8 file_create(FILE_INTERFACE* p_file);
+
+/*!
+ *
+ */
 u8 file_delete(FILE_INTERFACE* p_file);
 
 /*!
