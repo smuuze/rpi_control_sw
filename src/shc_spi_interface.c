@@ -28,19 +28,6 @@
 
 // ---- STATIC DATA -------------------------------------------------------------
 
-static GPIO_INTERFACE ce_pin = {
-	GPIO_CE0_PIN_NUM, //u8 pin_num ;
-	0,  // u8 is_initialized;
-	0, // u8 is_input;
-	0, //u8 is_high_level;
-	1, //u8 match_event_level;
-	0, //u8 event_rised;
-	0, //u32 sample_time_reference;
-	5, // u32 sample_timeout;
-	0, //u32 event_ref_time;
-	0, //u32 event_timeout;
-};
-
 GPIO_INTERFACE_BUILD_INOUT(SLAVE_CS, GPIO_CE0_PIN_NUM)
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
@@ -88,12 +75,6 @@ void spi_init(SPI_INTERFACE* p_spi_handle) {
 	err_code = ioctl(p_spi_handle->_handle_id, SPI_IOC_RD_MAX_SPEED_HZ, &p_spi_handle->speed_hz);
 	if (err_code) {
 		SPI_DEBUG_MSG("spi_init() - Can't get max speed hz - SPI_IOC_RD_MAX_SPEED_HZ\n");
-		return;
-	}	
-	
-	err_code = gpio_initialize(&ce_pin);
-	if (err_code != NO_ERR ) {
-		SPI_DEBUG_MSG("spi_init() - Initializing CE-Pin has FAILED !!! --- (error-code = %d)\n", err_code);
 		return;
 	}
 	
