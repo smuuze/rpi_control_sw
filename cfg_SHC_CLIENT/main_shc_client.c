@@ -607,12 +607,10 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 	}
 
 	if (MQTT_CONNECT_TIMER_is_active() == 0) {
-		MQTT_CONNECT_TIMER_start();
-	}
-
-	if (MQTT_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
-		//MAIN_DEBUG_MSG("main_connect_mqtt_host() - Waiting for MQTT_CONNECTION_INTERVAL_TIMEOUT_MS\n");
-		return;
+		if (MQTT_CONNECT_TIMER_is_up(MQTT_CONNECTION_INTERVAL_TIMEOUT_MS) == 0) {
+			//MAIN_DEBUG_MSG("main_connect_mqtt_host() - Waiting for MQTT_CONNECTION_INTERVAL_TIMEOUT_MS\n");
+			return;
+		}
 	}
 			
 	MQTT_CONNECT_TIMER_start();
@@ -660,4 +658,11 @@ static void main_connect_mqtt_host(MQTT_INTERFACE* p_mqttInterface, CFG_INTERFAC
 			
 		MQTT_CONNECT_TIMER_stop();
 	}
+}
+
+void command_line_usage(void) {
+	printf("\nUsage: spiHelper [options]]\n\n");
+	printf("Options:\n");
+	printf("-dev <device>                        : SPI-device to use for communication\t\n");
+	printf("-cmd <command>                       : command to send in hexadecimal form (e.g. 0101)\t\n");
 }
