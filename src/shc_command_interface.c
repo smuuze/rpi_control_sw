@@ -7,8 +7,6 @@
  * ------------------------------------------------------------------------------
  */
 
-// ---- INCLUDES ----------------------------------------------------------------
-
 #include "shc_timer.h"
 #include "shc_project_configuration.h"
 #include "shc_common_configuration.h"
@@ -20,13 +18,13 @@
 #include "shc_gpio_interface.h"
 #include "shc_command_interface.h"
 
-// ---- LOCAL DEFINITIONS -------------------------------------------------------
+// --------------------------------------------------------------------------------------
 
 #define COMMAND_DEBUG_MSG				noDEBUG_MSG
 
 #define COMMAND_INTERFACE_MAX_LENGTH_TEMP_BUFFER	64
 
-// ---- STATIC DATA -------------------------------------------------------------
+// --------------------------------------------------------------------------------------
 
 GPIO_INTERFACE_INCLUDE_INOUT(REQUEST_PIN)
 
@@ -34,7 +32,7 @@ TIME_MGMN_BUILD_TIMER(REQUEST_TIMER)
 
 static CFG_INTERFACE* p_cfgInterface;
 
-// ---- STATIC FUNCTIONS --------------------------------------------------------
+// --------------------------------------------------------------------------------------
 
 static u8 cmd_handler_request_device(void) {
 
@@ -59,7 +57,7 @@ static u8 cmd_handler_request_device(void) {
 		usleep(5000); // wait for HW to be ready
 	}
 	
-	REQUEST_PIN_no_pull();
+	REQUEST_PIN_pull_up();
 	
 	// wait for low level
 	REQUEST_TIMER_start();
@@ -247,12 +245,12 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
 
-	char path[128];
-	sprintf(path, "%s", p_cmd->command_file.path);
+	//char path[1024];
+	//sprintf(path, "%s", p_cmd->command_file.path);
 
 	if (file_open(&p_cmd->command_file) == 0) {
-		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
-		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Report-File not found !!! (FILE:%s)", path);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_cmd->command_file.path,  EXIT_FAILURE);
+		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Report-File not found !!! (FILE:%s)", p_cmd->command_file.path);
 		return ERR_FILE_OPEN;
 	}
 
@@ -296,11 +294,11 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
 
-	char path[128];
-	sprintf(path, "%s", p_cmd->execution_file.path);
+	//char path[128];
+	//sprintf(path, "%s", p_cmd->execution_file.path);
 
 	if (file_open(&p_cmd->execution_file) == 0) {
-		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - Open Execution-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", path,  EXIT_FAILURE);
+		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - Open Execution-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_cmd->execution_file.path,  EXIT_FAILURE);
 		return ERR_FILE_OPEN;
 	}
 
@@ -383,6 +381,7 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 
 	if (p_cmd->command.length == 0) {
+		COMMAND_DEBUG_MSG("cmd_handler_send_command() - command has no length!\n");
 		return ERR_INVALID_ARGUMENT;
 	}
 	
@@ -399,40 +398,44 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 			REQUEST_TIMER_start();
 			
 			// Check if there is a old answer pending on the other side
-			err_code = spi_transfer (
-				&p_com->data.spi,
-				1,
-				(const u8*) p_cmd->command.payload,
-				(u8*)&p_cmd->answer.length
-			);
-
+			err_code = spi_transfer ( &p_com->data.spi, 1, NULL, (u8*)&p_cmd->answer.length);
 			if (err_code != NO_ERR) {
-				COMMAND_DEBUG_MSG("cmd_handler_send_command - ERROR before sending command - reading old answer length has FAIELD !!! --- \n");
+				COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(ANSWER_LENGTH) has FAIELD !!! --- \n");
 				p_cmd->fail_counter += 1;
 				break;
 			}
 
 			if (p_cmd->answer.length > GENERAL_STRING_BUFFER_MAX_LENGTH) {
 				err_code = ERR_ANSWER_LENGTH;
-				COMMAND_DEBUG_MSG("cmd_handler_send_command - ERROR before sending command - old anser to long OVERFLOW !!! --- \n");
+				COMMAND_DEBUG_MSG("cmd_handler_send_command() - ERROR before sending command - old anser to long OVERFLOW !!! --- \n");
 				p_cmd->fail_counter += 1;
 				break;
 			}
 
-			p_cmd->command.length -= 1;
-			
-			while (REQUEST_TIMER_is_up(1) == 0) {
-			
-			}
-
 			if (p_cmd->answer.length != 0) {
 
-				u8 length = (p_cmd->answer.length > p_cmd->command.length) ? p_cmd->answer.length : p_cmd->command.length;
-				err_code = spi_transfer(&p_com->data.spi, length, (const u8*)(p_cmd->command.payload) + 1, p_cmd->answer.payload);
-				COMMAND_DEBUG_MSG("cmd_handler_send_command - Need to read old answer from the interface (Length: %d)!!!\n", p_cmd->answer.length);
+				COMMAND_DEBUG_MSG("cmd_handler_send_command() - Need to read old answer from the interface (Length: %d)!!!\n", p_cmd->answer.length);
 
-			} else {
-				err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*)(p_cmd->command.payload) + 1, NULL);
+				err_code = spi_transfer(&p_com->data.spi, p_cmd->answer.length, NULL, NULL); // dont care for the old answer
+				if (err_code != NO_ERR) {
+					COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(ANSWER_DATA) has FAIELD !!! --- \n");
+					p_cmd->fail_counter += 1;
+					break;
+				}
+			}
+				
+			err_code = spi_transfer(&p_com->data.spi, 1, (const u8*)(&p_cmd->command.length), NULL);
+			if (err_code != NO_ERR) {
+				COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(COMMAND_LENGTH) has FAIELD !!! --- \n");
+				p_cmd->fail_counter += 1;
+				break;
+			}
+
+			err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*)(p_cmd->command.payload), NULL);
+			if (err_code != NO_ERR) {
+				COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(COMMAND_DATA) has FAIELD !!! --- \n");
+				p_cmd->fail_counter += 1;
+				break;
 			}
 			
 			break;
@@ -495,8 +498,11 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 				&p_com->data.spi,
 				p_cmd->answer.length,
 				NULL,
-				p_cmd->answer.payload
+				p_cmd->answer.payload + 1
 			);
+
+			p_cmd->answer.payload[0] = p_cmd->answer.length;
+			p_cmd->answer.length += 1;
 
 			if (err_code) {
 				COMMAND_DEBUG_MSG("cmd_handler_receive_answer() - Receiving answer has FAILED !!! --- (ERR: %d)\n", err_code);
@@ -518,7 +524,7 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 	}
 
 	#ifdef DEBUG_ENABLED
-	hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
+	//hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
 	#endif
 
 	return err_code;
