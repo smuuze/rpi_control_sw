@@ -39,6 +39,34 @@ extern CFG_INTERFACE myCfgInterface;
 
 // ---- IMPLEMENTATION ----------------------------------------------------------
 
+static void main_get_traceoutput_from_source_line(char* p_string_to, char* p_string_from) {
+
+	u16 length = string_length(p_string_from);
+	u16 i = 0;
+
+	u16 start = 0;
+
+	for ( ; i < length; i++) {
+		if (p_string_from[i] == '\"') {
+			start = i;
+			break;
+		}
+	}
+
+	u16 end = start;
+
+	for ( i = start + 1 ; i < length; i++) {
+		if (p_string_from[i] == '\"') {
+			end = i;
+			break;
+		}
+	}
+
+	length = end - start;
+
+	memcpy(p_string_to, p_string_from + start, length);
+}
+
 static u8 main_read_source_file_line(char* base_path, TRACE_OBJECT* p_trace_obj) {
 
 	FILE_INTERFACE source_file;
@@ -50,7 +78,12 @@ static u8 main_read_source_file_line(char* base_path, TRACE_OBJECT* p_trace_obj)
 		return 0;
 	}
 
-	file_read_specific_line(&source_file, p_trace_obj->line_number, p_trace_obj->source_line, TRACE_OBJECT_SOURCE_LINE_LENGTH);
+	char trace_line[TRACE_OBJECT_SOURCE_LINE_LENGTH];
+	memset(trace_line, '\0', TRACE_OBJECT_SOURCE_LINE_LENGTH);
+
+	file_read_specific_line(&source_file, p_trace_obj->line_number, trace_line , TRACE_OBJECT_SOURCE_LINE_LENGTH);
+	main_get_traceoutput_from_source_line(p_trace_obj->source_line, trace_line);
+
 	//THREAD_DEBUG_MSG("Source-Line: %s\n", p_trace_obj->source_line);
 
 	return 1;
@@ -149,7 +182,7 @@ static void thread_print_trace_object_get_hex_string(char* p_string, const void 
 }
 
 void thread_print_trace_object_prepare_output(TRACE_OBJECT* p_trace_obj, char* p_string, u8 output_level) {
-			
+
 	switch (p_trace_obj->type) {
 		default:
 		case TRACE_OBJECT_TYPE_PASS:
