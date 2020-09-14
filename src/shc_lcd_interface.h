@@ -21,14 +21,16 @@ void lcd_write_line(char* message);
 
 void lcd_set_enabled(u8 enabled);
 
-//#ifdef LCD_AVAILABLE
+#ifdef LCD_AVAILABLE
+#define LCD_INIT(a)		lcd_set_enabled(a)
 #define LCD_PRINTF(...)		{					\
 					char lcd_msg[64];		\
 					sprintf(lcd_msg, __VA_ARGS__);	\
 					lcd_write_line(lcd_msg);	\
 				}
-//#else
-//#define LCD_PRINTF(...)		do{}while(0)
-//#endif
+#else
+#define LCD_INIT(a)		do{}while(0)
+#define LCD_PRINTF(...)		do{}while(0)
+#endif
 
 #endif // _SHC_LCD_INTERFACE_H_
