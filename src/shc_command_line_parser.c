@@ -135,7 +135,8 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 
 		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_LCD, string_length(COMMAND_LINE_ARGUMENT_LCD)) == 0) {
 			CFG_DEBUG_MSG("command_line_parser() - Enabling LCD\n");
-			lcd_set_enabled(1);
+
+			LCD_INIT(1);
 
 		} else if (memcmp(argv[i], COMMAND_LINE_ARGUMENT_CONTROLLER, string_length(COMMAND_LINE_ARGUMENT_CONTROLLER)) == 0) {
 			CFG_DEBUG_MSG("command_line_parser() - Enabling Control-Board\n");
@@ -286,7 +287,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 
 		if (memcmp(cfg_key, CFG_NAME_LCD_ENABLE, length_key) == 0) {
 			char *ptr;
-			lcd_set_enabled((u32)strtol(cfg_value, &ptr, 10));
+			LCD_INIT((u32)strtol(cfg_value, &ptr, 10));
 		}
 
 		else {
