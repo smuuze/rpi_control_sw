@@ -424,12 +424,12 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 				}
 			}
 				
-			err_code = spi_transfer(&p_com->data.spi, 1, (const u8*)(&p_cmd->command.length), NULL);
-			if (err_code != NO_ERR) {
-				COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(COMMAND_LENGTH) has FAIELD !!! --- \n");
-				p_cmd->fail_counter += 1;
-				break;
-			}
+			//err_code = spi_transfer(&p_com->data.spi, 1, (const u8*)(&p_cmd->command.length), NULL);
+			//if (err_code != NO_ERR) {
+			//	COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(COMMAND_LENGTH) has FAIELD !!! --- \n");
+			//	p_cmd->fail_counter += 1;
+			//	break;
+			//}
 
 			err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*)(p_cmd->command.payload), NULL);
 			if (err_code != NO_ERR) {
@@ -449,6 +449,10 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 		default:
 			break;
 	}
+
+	#ifdef DEBUG_ENABLED
+	hex_dump(p_cmd->command.payload, p_cmd->command.length, 32, "TX");
+	#endif
 
 	return err_code;
 }
@@ -524,14 +528,14 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 	}
 
 	#ifdef DEBUG_ENABLED
-	//hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
+	hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
 	#endif
 
 	return err_code;
 }
 
 u8 cmd_handler_get_error_code(COMMAND_INTERFACE* p_cmd) {
-	return p_cmd->answer.payload[1];
+	return p_cmd->answer.payload[2];
 }
 
 u8 cmd_handler_is_communication_command(COMMAND_INTERFACE* p_cmd) {
