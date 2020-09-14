@@ -24,7 +24,7 @@
 
 // ---- LOCAL DEFINITIONS -------------------------------------------------------
 
-#define SPI_DEBUG_MSG				noDEBUG_MSG
+#define SPI_DEBUG_MSG				DEBUG_MSG
 
 // ---- STATIC DATA -------------------------------------------------------------
 
