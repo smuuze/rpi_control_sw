@@ -10,7 +10,7 @@ include version.mk
 # --------- Modules
 
 MODULES			=
-MODULES 		+= LCD
+#MODULES 		+= LCD
 
 
 
