@@ -221,8 +221,8 @@ u8 cmd_handler_prepare_report_message(COMMAND_INTERFACE* p_cmd, u8 err_code, u8 
 	
 		p_cmd->message.length +=
 			byte_array_string_to_hex_string (
-				p_cmd->answer.payload,
-				p_cmd->answer.length,
+				p_cmd->answer.payload + 1,
+				p_cmd->answer.length - 1,
 				(char*)(p_cmd->message.payload + p_cmd->message.length),
 				GENERAL_STRING_BUFFER_MAX_LENGTH - p_cmd->message.length
 			);
