@@ -2,7 +2,7 @@
 # ------------------
 
 VERSION_MAJOR = 4
-VERSION_MINOR = 10
+VERSION_MINOR = 11
 
 # ------------------
 #
