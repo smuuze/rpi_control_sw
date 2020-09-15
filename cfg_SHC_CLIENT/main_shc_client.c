@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	char welcome_message[128];
-	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, myCmdInterface.answer.payload[2], myCmdInterface.answer.payload[3]);
+	sprintf(welcome_message, "%s%s_v%d.%d", myMqttInterface.welcome_msg, myMqttInterface.client_id, VERSION_MAJOR, VERSION_MINOR);
 	MAIN_DEBUG_MSG("main() - Welcome message: \"%s\"\n", welcome_message);
 
 	LOG_MSG(NO_ERR, &myCfgInterface.log_file, "Starting SmartHomeClient Deamon v%d.%d", VERSION_MAJOR, VERSION_MINOR);
