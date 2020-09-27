@@ -158,7 +158,7 @@ u8 command_line_parser(int argc, char* argv[], CFG_INTERFACE* p_cfg_interface, C
 				break;
 			}
 
-			p_cmd_interface->command.length = hex_string_to_byte_array(argv[i + 1], string_length(argv[i + 1]), p_cmd_interface->command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);			
+			p_cmd_interface->command.length = hex_string_to_byte_array(argv[i + 1], string_length(argv[i + 1]), p_cmd_interface->command.payload, GENERAL_STRING_BUFFER_MAX_LENGTH);	
 		}
 	}
 

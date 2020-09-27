@@ -7,6 +7,14 @@
  * ------------------------------------------------------------------------------
  */
 
+#define TRACER_OFF
+
+// --------------------------------------------------------------------------------------
+
+#include "tracer.h"
+
+// --------------------------------------------------------------------------------------
+
 #include "shc_timer.h"
 #include "shc_project_configuration.h"
 #include "shc_common_configuration.h"
@@ -245,9 +253,6 @@ u8 cmd_handler_prepare_command(COMMAND_INTERFACE* p_cmd) {
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
 
-	//char path[1024];
-	//sprintf(path, "%s", p_cmd->command_file.path);
-
 	if (file_open(&p_cmd->command_file) == 0) {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_command() - Open Command-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_cmd->command_file.path,  EXIT_FAILURE);
 		LOG_MSG(ERR_LEVEL_FATAL, &p_cfgInterface->log_file, "Report-File not found !!! (FILE:%s)", p_cmd->command_file.path);
@@ -293,9 +298,6 @@ u8 cmd_handler_prepare_execution(COMMAND_INTERFACE* p_cmd) {
 
 	p_cmd->command.length = 0;
 	p_cmd->answer.length = 0;
-
-	//char path[128];
-	//sprintf(path, "%s", p_cmd->execution_file.path);
 
 	if (file_open(&p_cmd->execution_file) == 0) {
 		COMMAND_DEBUG_MSG("cmd_handler_prepare_execution() - Open Execution-Map-File has FAILED !!! --- (FILE: %s / ERROR: %d)\n", p_cmd->execution_file.path,  EXIT_FAILURE);
@@ -423,13 +425,6 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 					break;
 				}
 			}
-				
-			//err_code = spi_transfer(&p_com->data.spi, 1, (const u8*)(&p_cmd->command.length), NULL);
-			//if (err_code != NO_ERR) {
-			//	COMMAND_DEBUG_MSG("cmd_handler_send_command() - spi_transfer(COMMAND_LENGTH) has FAIELD !!! --- \n");
-			//	p_cmd->fail_counter += 1;
-			//	break;
-			//}
 
 			err_code = spi_transfer(&p_com->data.spi, p_cmd->command.length, (const u8*)(p_cmd->command.payload), NULL);
 			if (err_code != NO_ERR) {
@@ -450,9 +445,7 @@ u8 cmd_handler_send_command(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com) {
 			break;
 	}
 
-	#ifdef DEBUG_ENABLED
-	hex_dump(p_cmd->command.payload, p_cmd->command.length, 32, "TX");
-	#endif
+	DEBUG_TRACE_N(p_cmd->command.length, p_cmd->command.payload, "cmd_handler_send_command() - Command:");
 
 	return err_code;
 }
@@ -527,9 +520,7 @@ u8 cmd_handler_receive_answer(COMMAND_INTERFACE* p_cmd, COM_INTERFACE* p_com, u3
 			break;
 	}
 
-	#ifdef DEBUG_ENABLED
-	hex_dump(p_cmd->answer.payload, p_cmd->answer.length, 32, "RX");
-	#endif
+	DEBUG_TRACE_N(p_cmd->answer.length, p_cmd->answer.payload, "cmd_handler_receive_answer() - Answer:");
 
 	return err_code;
 }
