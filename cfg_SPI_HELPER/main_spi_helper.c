@@ -1,4 +1,5 @@
 
+#define TRACER_OFF
 
 // --------------------------------------------------------------------------------------
 
@@ -18,6 +19,10 @@
 #include <linux/spi/spidev.h>
 
 #include <time.h>
+
+// --------------------------------------------------------------------------------
+
+#include "tracer.h"
 
 // --------------------------------------------------------------------------------------
 
@@ -58,13 +63,13 @@ static COM_INTERFACE myComInterface;
 
 int main(int argc, char* argv[]) {
 
-	MAIN_DEBUG_MSG("Welcome to the SHC-SPI-Helper v%d.%d\n\n", VERSION_MAJOR, VERSION_MINOR);
+	printf("Welcome to the SHC-SPI-Helper v%d.%d\n\n", VERSION_MAJOR, VERSION_MINOR);
 
 	// --- Parsing Command-Line Arguments
 	u8 err_code = command_line_parser(argc, argv, &myCfgInterface, &myComInterface, NULL, &myCmdInterface, NULL, NULL);
 	if (err_code != NO_ERR) {
 
-		MAIN_DEBUG_MSG("main() - command_line_parser() has FAILED !!! ---\n");
+		DEBUG_PASS("main() - command_line_parser() has FAILED !!! ---\n");
 		command_line_usage();
 		return err_code;
 	}
@@ -78,14 +83,14 @@ int main(int argc, char* argv[]) {
 
 	if ((err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface)) != NO_ERR) {
 
-		MAIN_DEBUG_MSG("Sending command has FAIELD! (error: %d)\n", err_code);
+		DEBUG_TRACE_byte(err_code, "main() - cmd_handler_send_command() has FAILED !!! -- -- (error)");
 		command_line_usage();
 		return -2;					
 	} 
 	
 	if ((err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS)) != NO_ERR) {
 
-		MAIN_DEBUG_MSG("Receiving answer has FAIELD! (error: %d)\n", err_code);
+		DEBUG_TRACE_byte(err_code, "main() - cmd_handler_receive_answer() has FAILED !!! -- -- (error)");
 		command_line_usage();
 		return -3;
 	}

@@ -100,6 +100,7 @@ TARGET_SERVICE		:= s
 # --------- Include Path
 
 INC_PATH =
+INC_PATH += .
 INC_PATH += $(APP_PATH)
 INC_PATH += $(TOOLCHAIN_INC_PATH)
 
@@ -130,13 +131,24 @@ CSRCS += $(APP_PATH)/shc_lcd_interface.c
 DEFS += -DLCD_AVAILABLE=1
 endif
 
+# ---- TRACER -----------------------------------------------------------
+
+FRMWRK_PATH = ../../rpi_control_frmwrk
+MAKE_PATH = $(FRMWRK_PATH)/make
+
+INC_PATH += $(FRMWRK_PATH)/src/common/cpu/rpi_arm
+
+TRACER_CFG = CONSOLE
+
+include $(MAKE_PATH)/make_tracer.mk
+
 # --------- Defines
 
 DEFS =
 DEFS += -DVERSION_MAJOR=$(VERSION_MAJOR)
 DEFS += -DVERSION_MINOR=$(VERSION_MINOR)
 
-DEBUG_ENABLED = -DDEBUG_ENABLED
+DEBUG_ENABLED = -DDEBUG_ENABLED=1 -DTRACER_ENABLED=1
 
 # --------- Compiler Flags
 
