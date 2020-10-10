@@ -104,6 +104,10 @@ INC_PATH =
 INC_PATH += $(APP_PATH)
 INC_PATH += $(TOOLCHAIN_INC_PATH)
 
+TRACER_INC_PATH = ../../rpi_control_frmwrk/src/tracer
+#TRACER_INC_PATH = ../../rpi_control_frmwrk/src/tracer
+INC_PATH += $(TRACER_INC_PATH)
+
 
 # --------- Library List
 

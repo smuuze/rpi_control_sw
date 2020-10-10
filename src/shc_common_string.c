@@ -272,7 +272,7 @@ u8 hex_string_to_byte_array(char* hex_string, u16 hex_string_len, u8* byte_array
 		u8 nibble_value = 0;
 		u8 nibble_factor = is_upper_nibble != 0 ? 16 : 1;
 		
-		if (nibble > 47 && nibble < 57) {
+		if (nibble >= 48 && nibble <= 57) {
 			// is between 0 and 9
 			nibble_value = nibble - '0';
 			
