@@ -1,111 +1,227 @@
+/*! 
+ * --------------------------------------------------------------------------------
+ *
+ * \file	main_spi_helper.c
+ * \brief
+ * \author	sebastian lesse
+ *
+ * --------------------------------------------------------------------------------
+ */
 
-#define TRACER_ON
+#define TRACER_OFF
 
 // --------------------------------------------------------------------------------------
 
-#include "shc_project_configuration.h"
-#include "shc_common_types.h"
-#include "shc_common_string.h"
-#include "shc_common_configuration.h"
-#include "shc_debug_interface.h"
+#include "config.h"
 
-#include "shc_command_interface.h"
-#include "shc_spi_interface.h"
-#include "shc_gpio_interface.h"
-#include "shc_command_line_parser.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <linux/spi/spidev.h>
-
-#include <time.h>
-
-// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------
 
 #include "tracer.h"
 
 // --------------------------------------------------------------------------------------
 
-#define MAIN_DEBUG_MSG					DEBUG_MSG
-#define MAIN_CFG_DEBUG_MSG				DEBUG_MSG
+#include "cpu.h"
+
+#include <stdio.h>
+
+// --------------------------------------------------------------------------------------
+
+#include "initialization/initialization.h"
+#include "common/signal_slot_interface.h"
+#include "common/common_types.h"
+#include "mcu_task_management/mcu_task_controller.h"
+#include "ui/command_line/command_line_interface.h"
+#include "ui/console/ui_console.h"
+#include "ui/lcd/ui_lcd_interface.h"
+#include "ui/cfg_file_parser/cfg_file_parser.h"
+
+//-----------------------------------------------------------------------------
+
+/*!
+ *
+ */
+static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(void* p_argument);
+
+/*!
+ *
+ */
+static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(void* p_argument);
+
+/*!
+ *
+ */
+static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument);
+
+/*!
+ *
+ */
+static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument);
+
+/*!
+ *
+ */
+static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument);
+
+/*!
+ *
+ */
+static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(void* p_argument);
+
+// --------------------------------------------------------------------------------------
+
+SIGNAL_SLOT_INTERFACE_CREATE_SLOT(RPI_HOST_RESPONSE_RECEIVED_SIGNAL, MAIN_RPI_HOST_RESPONSE_RECEIVED_SLOT, main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK)
+SIGNAL_SLOT_INTERFACE_CREATE_SLOT(RPI_HOST_COMMAND_RECEIVED_SIGNAL, MAIN_RPI_HOST_COMMAND_RECEIVED_SLOT, main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK)
+SIGNAL_SLOT_INTERFACE_CREATE_SLOT(CLI_HELP_REQUESTED_SIGNAL, MAIN_CLI_HELP_REQUESTED_SLOT, main_CLI_HELP_REQUESTED_SLOT_CALLBACK)
+SIGNAL_SLOT_INTERFACE_CREATE_SLOT(CLI_INVALID_PARAMETER_SIGNAL, MAIN_CLI_INVALID_PARAMETER_SLOT, main_CLI_INVALID_PARAMETER_SLOT_CALLBACK)
+SIGNAL_SLOT_INTERFACE_CREATE_SLOT(CLI_LCD_ACTIVATED_SIGNAL, MAIN_CLI_LCD_ACTIVATED_SLOT, main_CLI_LCD_ACTIVATED_SLOT_CALLBACK)
+SIGNAL_SLOT_INTERFACE_CREATE_SLOT(CFG_PARSER_NEW_CFG_OBJECT_SIGNAL, MAIN_CFG_OBJECT_RECEIVED_SLOT, main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK)
 
 // --------------------------------------------------------------------------------------
 
 /*!
  *
  */
-void command_line_usage(void);
+static u8 exit_program = 0;
 
 // --------------------------------------------------------------------------------------
-
-GPIO_INTERFACE_BUILD_INOUT(RESET_PIN, GPIO_RESET_PIN_NUM)
-GPIO_INTERFACE_BUILD_INOUT(REQUEST_PIN, GPIO_REQUEST_PIN_NUM)
-
-// --------------------------------------------------------------------------------------
-
-/*!
- *
- */
-static CFG_INTERFACE myCfgInterface;
-
-/*!
- *
- */
-static COMMAND_INTERFACE myCmdInterface;
-
-/*!
- *
- */
-static COM_INTERFACE myComInterface;
-
-// --------------------------------------------------------------------------------------
-
 
 int main(int argc, char* argv[]) {
 
+	ATOMIC_OPERATION
+	(
+		initialization();
+	)
+
+	DEBUG_PASS("main() - MAIN_RPI_HOST_RESPONSE_RECEIVED_SLOT_connect()");
+	MAIN_RPI_HOST_RESPONSE_RECEIVED_SLOT_connect();
+
+	DEBUG_PASS("main() - MAIN_RPI_HOST_COMMAND_RECEIVED_SLOT_connect()");
+	MAIN_RPI_HOST_COMMAND_RECEIVED_SLOT_connect();
+
+	DEBUG_PASS("main() - MAIN_CLI_HELP_REQUESTED_SLOT_connect()");
+	MAIN_CLI_HELP_REQUESTED_SLOT_connect();
+
+	DEBUG_PASS("main() - MAIN_CLI_INVALID_PARAMETER_SLOT_connect()");
+	MAIN_CLI_INVALID_PARAMETER_SLOT_connect();
+
+	DEBUG_PASS("main() - MAIN_CLI_LCD_ACTIVATED_SLOT_connect()");
+	MAIN_CLI_LCD_ACTIVATED_SLOT_connect();
+
+	DEBUG_PASS("main() - MAIN_CFG_OBJECT_RECEIVED_SLOT_connect()");
+	MAIN_CFG_OBJECT_RECEIVED_SLOT_connect();
+
 	printf("Welcome to the SHC-SPI-Helper v%d.%d\n\n", VERSION_MAJOR, VERSION_MINOR);
 
-	// --- Parsing Command-Line Arguments
-	u8 err_code = command_line_parser(argc, argv, &myCfgInterface, &myComInterface, NULL, &myCmdInterface, NULL, NULL);
-	if (err_code != NO_ERR) {
+	command_line_interface(argc, argv);
 
-		DEBUG_PASS("main() - command_line_parser() has FAILED !!! ---\n");
-		command_line_usage();
-		return err_code;
+	if (exit_program) {
+		DEBUG_PASS("main() - initialization FAILED !!! --- ");
+		return 1;
 	}
 
-	cmd_handler_init(&myCfgInterface);
+	lcd_write_line("SPI-Helper");
+	lcd_write_line("... started");
 
-	spi_init(&myComInterface.data.spi);
+	for (;;) {
 
-	REQUEST_PIN_init();
-	REQUEST_PIN_pull_up();
-
-	if ((err_code = cmd_handler_send_command(&myCmdInterface, &myComInterface)) != NO_ERR) {
-
-		DEBUG_TRACE_byte(err_code, "main() - cmd_handler_send_command() has FAILED !!! -- -- (error)");
-		command_line_usage();
-		return -2;					
-	} 
-	
-	if ((err_code = cmd_handler_receive_answer(&myCmdInterface, &myComInterface, CMD_RX_ANSWER_TIMEOUT_MS)) != NO_ERR) {
-
-		DEBUG_TRACE_byte(err_code, "main() - cmd_handler_receive_answer() has FAILED !!! -- -- (error)");
-		command_line_usage();
-		return -3;
+		if (exit_program) {
+			break;
+		}
+		
+		mcu_task_controller_schedule();
+		mcu_task_controller_background_run();
+		watchdog();
 	}
 
-	hex_dump(myCmdInterface.command.payload, myCmdInterface.command.length, 32, "TX");
-	hex_dump(myCmdInterface.answer.payload, myCmdInterface.answer.length, 32, "RX");
-	
 	return 0;
 }
 
 // --------------------------------------------------------------------------------------
 
-void command_line_usage(void) {
-	printf("\nUsage: spiHelper [options]]\n\n");
-	printf("Options:\n");
-	printf("-dev <device>                        : SPI-device to use for communication\t\n");
-	printf("-cmd <command>                       : command to send in hexadecimal form (e.g. 0101)\t\n");
+static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+
+	if (p_argument == NULL) {
+		DEBUG_PASS("main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK() - argument is NULL");
+		return;
+	}
+
+	DEBUG_PASS("main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK()");
+
+	COMMON_GENERIC_BUFFER_TYPE* p_buffer = (COMMON_GENERIC_BUFFER_TYPE*) p_argument;
+
+	u8 t_buffer[128];
+	t_buffer[0] = p_buffer->length;
+
+	if (p_buffer->length > sizeof(t_buffer) - 1) {
+		p_buffer->length = sizeof(t_buffer) - 1;
+	}
+
+	memcpy(t_buffer + 1, p_buffer->data, p_buffer->length);
+
+	console_write_line("Response:");
+	console_hex_dump(p_buffer->length + 1, t_buffer);
+
+	lcd_write_line("SPI-Helper");
+	lcd_write_line("- response OK");
+
+	exit_program = 1;
+}
+
+static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+
+	DEBUG_PASS("main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK()");
+
+	COMMON_GENERIC_BUFFER_TYPE* p_buffer = (COMMON_GENERIC_BUFFER_TYPE*) p_argument;
+
+	console_write_line("Command:");
+	console_hex_dump(p_buffer->length, p_buffer->data);
+
+	lcd_write_line("SPI-Helper");
+	lcd_write_line("- command OK");
+}
+
+// --------------------------------------------------------------------------------------
+
+static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument) {
+
+	DEBUG_PASS("main_CLI_INVALID_PARAMETER_SLOT_CALLBACK");
+
+	if (p_argument != NULL) {
+		printf("Invalid parameter for arguemnt %s given!\n", (char*)p_argument);
+	} else {
+		console_write_line("Invalid parameter given, check your input!");
+	}
+	
+	lcd_write_line("SPI-Helper");
+	lcd_write_line("- inv parameter");
+
+	main_CLI_HELP_REQUESTED_SLOT_CALLBACK(NULL);
+}
+
+static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument) {
+
+	DEBUG_PASS("main_CLI_LCD_ACTIVATED_SLOT_CALLBACK()");
+
+	lcd_init();
+	lcd_set_enabled(1);
+}
+
+static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument) {
+	(void) p_argument;
+
+	console_write_line("Usage: spiHelper [options]]\n\n");
+	console_write_line("Options:");
+	console_write_line("-dev <device>                        : SPI-device to use for communication");
+	console_write_line("-cmd <command>                       : command to send in hexadecimal form (e.g. 0101)");
+
+	exit_program = 1;
+}
+
+static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+
+	CFG_FILE_PARSER_CFG_OBJECT_TYPE* p_cfg_obj = (CFG_FILE_PARSER_CFG_OBJECT_TYPE*)p_argument;
+
+	console_write_line("CONFIGURATIATION-OBJECT:");
+	console_write_string("- key: ", p_cfg_obj->key);
+	console_write_string("- value: ", p_cfg_obj->value);
 }
