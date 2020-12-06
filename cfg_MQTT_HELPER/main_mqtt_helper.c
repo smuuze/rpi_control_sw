@@ -46,47 +46,47 @@
 /*!
  *
  */
-static void main_MQTT_CONNECTION_ESTABLISHED_SLOT_CALLBACK(void* p_argument);
+static void main_MQTT_CONNECTION_ESTABLISHED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_MQTT_CONNECTION_LOST_SLOT_CALLBACK(void* p_argument);
+static void main_MQTT_CONNECTION_LOST_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_MQTT_MESSAGE_RECEIVED_SLOT_CALLBACK(void* p_argument);
+static void main_MQTT_MESSAGE_RECEIVED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_MQTT_MESSAGE_SEND_SUCCEED_SLOT_CALLBACK(void* p_argument);
+static void main_MQTT_MESSAGE_SEND_SUCCEED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_MESSAGE_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_MESSAGE_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(void* p_argument);
+static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(const void* p_argument);
 
 // --------------------------------------------------------------------------------------
 
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
 
 // --------------------------------------------------------------------------------------
 
-static void main_MQTT_CONNECTION_ESTABLISHED_SLOT_CALLBACK(void* p_argument) {
+static void main_MQTT_CONNECTION_ESTABLISHED_SLOT_CALLBACK(const void* p_argument) {
 	console_write_line("Connection to MQTT-Broker has been established");
 	
 	lcd_write_line(MAIN_MODULE_NAME);
@@ -208,14 +208,14 @@ static void main_MQTT_CONNECTION_ESTABLISHED_SLOT_CALLBACK(void* p_argument) {
 	connection_established = 1;
 }
 
-static void main_MQTT_CONNECTION_LOST_SLOT_CALLBACK(void* p_argument) {
+static void main_MQTT_CONNECTION_LOST_SLOT_CALLBACK(const void* p_argument) {
 	console_write_line("Connection to MQTT-Broker lost");
 
 	lcd_write_line(MAIN_MODULE_NAME);
 	lcd_write_line("connection lost");
 }
 
-static void main_MQTT_MESSAGE_RECEIVED_SLOT_CALLBACK(void* p_argument){
+static void main_MQTT_MESSAGE_RECEIVED_SLOT_CALLBACK(const void* p_argument){
 
 
 	if (p_argument == NULL) {
@@ -231,7 +231,7 @@ static void main_MQTT_MESSAGE_RECEIVED_SLOT_CALLBACK(void* p_argument){
 	lcd_write_line("msg received");
 }
 
-static void main_MQTT_MESSAGE_SEND_SUCCEED_SLOT_CALLBACK(void* p_argument) {
+static void main_MQTT_MESSAGE_SEND_SUCCEED_SLOT_CALLBACK(const void* p_argument) {
 	console_write_line("Message has been send");
 
 	lcd_write_line(MAIN_MODULE_NAME);
@@ -242,7 +242,7 @@ static void main_MQTT_MESSAGE_SEND_SUCCEED_SLOT_CALLBACK(void* p_argument) {
 
 // --------------------------------------------------------------------------------------
 
-static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(const void* p_argument) {
 
 	DEBUG_PASS("main_CLI_INVALID_PARAMETER_SLOT_CALLBACK");
 
@@ -258,7 +258,7 @@ static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument) {
 	main_CLI_HELP_REQUESTED_SLOT_CALLBACK(NULL);
 }
 
-static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(const void* p_argument) {
 
 	DEBUG_PASS("main_CLI_LCD_ACTIVATED_SLOT_CALLBACK()");
 
@@ -266,7 +266,7 @@ static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument) {
 	lcd_set_enabled(1);
 }
 
-static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(const void* p_argument) {
 	(void) p_argument;
 
 	console_write_line("Usage: mqttHelper [options]]\n\n");
@@ -279,7 +279,7 @@ static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument) {
 	exit_program = 1;
 }
 
-static void main_CLI_MESSAGE_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_MESSAGE_SLOT_CALLBACK(const void* p_argument) {
 
 	if (p_argument == NULL) {
 		console_write_line("Invalid argument for -msg given!");
@@ -303,7 +303,7 @@ static void main_CLI_MESSAGE_SLOT_CALLBACK(void* p_argument) {
 
 // --------------------------------------------------------------------------------------
 
-static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(const void* p_argument) {
 
 	__UNUSED__ CFG_FILE_PARSER_CFG_OBJECT_TYPE* p_cfg_obj = (CFG_FILE_PARSER_CFG_OBJECT_TYPE*)p_argument;
 

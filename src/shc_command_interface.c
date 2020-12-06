@@ -340,12 +340,12 @@ u8 cmd_handler_run_execution(COMMAND_INTERFACE* p_cmd, u8 get_output) {
 	if (get_output == COMMAND_INTERFACE_IGNORE_OUTPUT) {
 		COMMAND_DEBUG_MSG("cmd_handler_run_execution() - Ignoring output");
 		system((const char*)p_cmd->command.payload);
-		return NO_ERR;
+		return 1;
 	}
 	
 	p_cmd->answer.length = 0;
 	
-	FILE* p_pipe = popen((const char*)p_cmd->command.payload, "r");		//Send the command, popen exits immediately
+	FILE* p_pipe = popen((const char*)p_cmd->command.payload, "r");	// Send the command, popen exits immediately
 	if (!p_pipe) {
 		COMMAND_DEBUG_MSG("cmd_handler_run_execution() - popen has FAILED !!! --- error: Command not found\n");
 		return ERR_BAD_CMD;

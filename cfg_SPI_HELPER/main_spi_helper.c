@@ -40,32 +40,32 @@
 /*!
  *
  */
-static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(void* p_argument);
+static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(void* p_argument);
+static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument);
+static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(const void* p_argument);
 
 /*!
  *
  */
-static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(void* p_argument);
+static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(const void* p_argument);
 
 // --------------------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
 
 // --------------------------------------------------------------------------------------
 
-static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(const void* p_argument) {
 
 	if (p_argument == NULL) {
 		DEBUG_PASS("main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK() - argument is NULL");
@@ -167,7 +167,7 @@ static void main_RPI_HOST_RESPONSE_RECEIVED_SLOT_CALLBACK(void* p_argument) {
 	exit_program = 1;
 }
 
-static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(const void* p_argument) {
 
 	DEBUG_PASS("main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK()");
 
@@ -182,7 +182,7 @@ static void main_RPI_HOST_COMMAND_RECEIVED_SLOT_CALLBACK(void* p_argument) {
 
 // --------------------------------------------------------------------------------------
 
-static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(const void* p_argument) {
 
 	DEBUG_PASS("main_CLI_INVALID_PARAMETER_SLOT_CALLBACK");
 
@@ -198,7 +198,7 @@ static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(void* p_argument) {
 	main_CLI_HELP_REQUESTED_SLOT_CALLBACK(NULL);
 }
 
-static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(const void* p_argument) {
 
 	DEBUG_PASS("main_CLI_LCD_ACTIVATED_SLOT_CALLBACK()");
 
@@ -206,7 +206,7 @@ static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(void* p_argument) {
 	lcd_set_enabled(1);
 }
 
-static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument) {
+static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(const void* p_argument) {
 	(void) p_argument;
 
 	console_write_line("Usage: spiHelper [options]]\n\n");
@@ -217,7 +217,7 @@ static void main_CLI_HELP_REQUESTED_SLOT_CALLBACK(void* p_argument) {
 	exit_program = 1;
 }
 
-static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(void* p_argument) {
+static void main_CFG_OBJECT_RECEIVED_SLOT_CALLBACK(const void* p_argument) {
 
 	CFG_FILE_PARSER_CFG_OBJECT_TYPE* p_cfg_obj = (CFG_FILE_PARSER_CFG_OBJECT_TYPE*)p_argument;
 
