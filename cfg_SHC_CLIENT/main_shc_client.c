@@ -331,7 +331,7 @@ static void main_RPI_HOST_RESPONSE_TIMEOUT_SLOT_CALLBACK(const void* p_argument)
 		console_write_line("--- TIMEOUT RPI-HOST ---");
 	}
 	
-	log_message_string("Unknown command: ", (const char*)p_argument);
+	log_message("Timeout on receiving response from control-board");
 }
 
 // --------------------------------------------------------------------------------------
