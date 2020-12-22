@@ -102,6 +102,7 @@ USER_INTERFACE_CFG += CLI_ARG_COMMAND
 USER_INTERFACE_CFG += CONSOLE
 USER_INTERFACE_CFG += LCD_16X2
 USER_INTERFACE_CFG += FILE_INTERFACE
+USER_INTERFACE_CFG += LOG_INTERFACE
 
 #-----------------------------------------------------------------------------
 
