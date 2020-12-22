@@ -27,15 +27,19 @@
 // --------------------------------------------------------------------------------------
 
 #include "initialization/initialization.h"
+
 #include "common/signal_slot_interface.h"
 #include "common/common_types.h"
 #include "common/local_module_status.h"
+
 #include "mcu_task_management/mcu_task_controller.h"
+#include "time_management/time_management.h"
+
 #include "ui/command_line/command_line_interface.h"
 #include "ui/console/ui_console.h"
 #include "ui/lcd/ui_lcd_interface.h"
 #include "ui/cfg_file_parser/cfg_file_parser.h"
-#include "time_management/time_management.h"
+#include "ui/log_interface/log_interface.h"
 
 // --------------------------------------------------------------------------------------
 
@@ -89,6 +93,8 @@ static void main_CLI_INVALID_PARAMETER_SLOT_CALLBACK(const void* p_argument) {
 		console_write(" - ");
 		console_write_line("Invalid parameter given, check your input!");
 	}
+
+	log_message("Invalid CLI argument given");
 	
 	lcd_write_line("SHC");
 	lcd_write_line("- inv parameter");
@@ -105,6 +111,8 @@ static void main_CLI_LCD_ACTIVATED_SLOT_CALLBACK(const void* p_argument) {
 		console_write(" - ");
 		console_write_line("LCD activated");
 	}
+	
+	log_message("LCD activated");
 
 	lcd_init();
 	lcd_set_enabled(1);
@@ -130,6 +138,8 @@ static void main_CLI_EXECUTER_COMMAND_RESPONSE_SLOT_CALLBACK(const void* p_argum
 		console_write(" - ");
 		console_write_line("Execution Command response received");
 	}
+	
+	log_message("Response for EXE-command received");
 }
 
 static void main_CLI_EXECUTER_COMMAND_TIMEOUT_CALLBACK(const void* p_argument) {
@@ -151,6 +161,8 @@ static void main_CLI_EXECUTER_COMMAND_NOT_FOUND_CALLBACK(const void* p_argument)
 		console_write("Execution Command not found: ");
 		console_write_line((const char*) p_argument);
 	}
+	
+	log_message_string("EXE-command not found - ", (const char*) p_argument);
 }
 
 static void main_CLI_EXECUTER_COMMAND_RECEIVED_SLOT_CALLBACK(const void* p_argument) {
@@ -162,6 +174,8 @@ static void main_CLI_EXECUTER_COMMAND_RECEIVED_SLOT_CALLBACK(const void* p_argum
 		console_write("Execution Command: ");
 		console_write_line((const char*) p_argument);
 	}
+	
+	log_message_string("EXE-Command: ", (const char*) p_argument);
 }
 
 static void main_MQTT_CONNECTION_ESTABLISHED_CALLBACK(const void* p_argument) {
@@ -174,6 +188,8 @@ static void main_MQTT_CONNECTION_ESTABLISHED_CALLBACK(const void* p_argument) {
 		console_write(" - ");
 		console_write_line("MQTT Connection established");
 	}
+	
+	log_message("MQTT connection established");
 }
 
 static void main_MQTT_CONNECTION_LOST_CALLBACK(const void* p_argument) {
@@ -186,18 +202,22 @@ static void main_MQTT_CONNECTION_LOST_CALLBACK(const void* p_argument) {
 		console_write(" - ");
 		console_write_line("MQTT Connection Lost");
 	}
+	
+	log_message("MQTT connection lost");
 }
 
 static void main_MQTT_MESSAGE_RECEIVED_CALLBACK(const void* p_argument) {
 
-	DEBUG_TRACE_STR((char*) p_argument, "main_MQTT_MESSAGE_RECEIVED_CALLBACK()");
+	DEBUG_TRACE_STR((const char*) p_argument, "main_MQTT_MESSAGE_RECEIVED_CALLBACK()");
 
 	if (MAIN_STATUS_is_set(MAIN_STATUS_CONSOLE_ACTIVE)) {
 		console_write_number(MAIN_TIMER_elapsed());
 		console_write(" - ");
 		console_write("MQTT Message received: ");
-		console_write_line((char*) p_argument);
+		console_write_line((const char*) p_argument);
 	}
+	
+	log_message_string("MQTT message received: ", (const char*) p_argument);
 }
 
 static void main_MQTT_MESSAGE_SEND_FAILED_CALLBACK(const void* p_argument) {
@@ -209,6 +229,8 @@ static void main_MQTT_MESSAGE_SEND_FAILED_CALLBACK(const void* p_argument) {
 		console_write(" - ");
 		console_write("Send MQTT-Message has FAILED !!!");
 	}
+	
+	log_message_string("MQTT message transmit has FAILED - message: ", (const char*) p_argument);
 }
 
 static void main_MQTT_MESSAGE_SEND_SUCCEEDED_CALLBACK(const void* p_argument) {
@@ -244,6 +266,8 @@ static void main_MSG_EXECUTER_RESPONSE_TIMEOUT_SLOT_CALLBACK(const void* p_argum
 		console_write((const char*)p_argument);
 		console_write_line(" --- ");
 	}
+	
+	log_message_string("Timeout while processing command: ", (const char*)p_argument);
 }
 
 static void main_MSG_EXECUTER_INVALID_COMMAND_SLOT_CALLBACK(const void* p_argument) {
@@ -254,6 +278,8 @@ static void main_MSG_EXECUTER_INVALID_COMMAND_SLOT_CALLBACK(const void* p_argume
 		console_write(" - ");
 		console_write_line("Process Command Message Failed - (unknown command)");
 	}
+	
+	log_message_string("Unknown command: ", (const char*)p_argument);
 }
 
 static void main_MSG_EXECUTER_FILE_OPEN_FAILED_SLOT_CALLBACK(const void* p_argument) {
@@ -267,6 +293,8 @@ static void main_MSG_EXECUTER_FILE_OPEN_FAILED_SLOT_CALLBACK(const void* p_argum
 		console_write("File open Failed: ");
 		console_write_line(response_msg);
 	}
+	
+	log_message_string("File open has failed - file: ", (const char*)p_argument);
 }
 
 static void main_MSG_EXECUTER_RESPONSE_RECEIVED_SLOT_CALLBACK(const void* p_argument) {
@@ -302,6 +330,8 @@ static void main_RPI_HOST_RESPONSE_TIMEOUT_SLOT_CALLBACK(const void* p_argument)
 		console_write(" - ");
 		console_write_line("--- TIMEOUT RPI-HOST ---");
 	}
+	
+	log_message_string("Unknown command: ", (const char*)p_argument);
 }
 
 // --------------------------------------------------------------------------------------
