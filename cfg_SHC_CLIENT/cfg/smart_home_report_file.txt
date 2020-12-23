@@ -1,6 +1,6 @@
-#rpt_light_01=COM:020501
-#rpt_light_02=COM:020502
-#rpt_light_03=COM:020503
-#rpt_light_04=COM:020504
-#rpt_temperature=COM:0107
-#rpt_humidity=COM:0108
+#rpt_light_01=com:020501
+#rpt_light_02=com:020502
+#rpt_light_03=com:020503
+#rpt_light_04=com:020504
+#rpt_temperature=com:0107
+#rpt_humidity=com:0108
