@@ -7,6 +7,8 @@ Type=idle
 ExecStart=/etc/SmartHomeClient/shcd -cfg /etc/SmartHomeClient/cfg/shc_configuration.conf
 WorkingDirectory=/etc/SmartHomeClient
 User=shc
+Restart=always
+RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
