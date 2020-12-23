@@ -1,0 +1,16 @@
+MQTT_HOST_ADDRESS=tcp://192.168.2.84:1883
+MQTT_CLIENT_ID=shc_iapetus
+MQTT_TOPIC_NAME=test_topic
+MQTT_WELCOME_MESSAGE=shc_startup=
+MQTT_TIMEOUT=1000
+COMMUNICATION_TYPE=SPI
+COM_SPI_BAUDRATE=9600
+COM_SPI_DEVICE=/dev/spidev0.0
+COMMAND_FILE_PATH=/home/shc/smart_home_command_file.txt
+REPORT_FILE_PATH=/home/shc/smart_home_report_file.txt
+EVENT_FILE_PATH=/home/shc/smart_home_event_file.txt
+EXECUTION_FILE_PATH=/home/shc/smart_home_execute_file.txt
+LOG_FILE_PATH=/home/shc/smart_home_log_file.txt
+SCHEDULE_INTERVAL_REPORT_MS=60000
+SCHEDULE_INTERVAL_EVENT_MS=1500
+SCHEDULE_INTERVAL_CONFIG_MS=60000

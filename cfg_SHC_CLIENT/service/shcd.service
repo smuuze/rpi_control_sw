@@ -1,0 +1,10 @@
+[Unit]
+Description=Smart-Home-Client-Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/etc/SmartHomeClient/shcd -cfg /etc/SmartHomeClient/cfg/shc_configuration.conf &
+
+[Install]
+WantedBy=multi-user.target
