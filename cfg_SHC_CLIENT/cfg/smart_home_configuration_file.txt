@@ -1,13 +1,13 @@
-MQTT_HOST_ADDRESS=tcp://192.168.2.84:1883
+MQTT_HOST_ADDRESS=tcp://<your_mqtt_broker_ip>:1883
 MQTT_CLIENT_ID=shc_default_client_name
 MQTT_TOPIC_NAME=shc_default_topic_name
 MQTT_WELCOME_MESSAGE=shc_default_startup_message
 MQTT_TIMEOUT=1000
 COMMUNICATION_TYPE=SPI
-COM_SPI_BAUDRATE=9600
+COM_SPI_BAUDRATE=50000
 COM_SPI_DEVICE=/dev/spidev0.0
-COMMAND_FILE_PATH=/etc/SmartHomeClient/shc_command.conf
-REPORT_FILE_PATH=/etc/SmartHomeClient/shc_report.conf
+COMMAND_FILE_PATH=/etc/SmartHomeClient/cfg/shc_command.conf
+REPORT_FILE_PATH=/etc/SmartHomeClient/cfg/shc_report.conf
 LOG_FILE_PATH=/etc/SmartHomeClient/log/
 SCHEDULE_INTERVAL_REPORT_MS=60000
 SCHEDULE_INTERVAL_EVENT_MS=1500
