@@ -5,6 +5,8 @@ After=multi-user.target
 [Service]
 Type=idle
 ExecStart=/etc/SmartHomeClient/shcd -cfg /etc/SmartHomeClient/cfg/shc_configuration.conf &
+WorkingDirectory=/etc/SmartHomeClient
+User=shc
 
 [Install]
 WantedBy=multi-user.target
