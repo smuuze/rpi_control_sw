@@ -268,7 +268,7 @@ static void main_MQTT_MESSAGE_SEND_SUCCEEDED_CALLBACK(const void* p_argument) {
 		console_write_line("Send MQTT-Message succeeded");
 	}
 	
-	log_message_("MQTT message successful send");
+	log_message("MQTT message successful send");
 }
 
 static void main_MQTT_MESSAGE_TO_SEND_CALLBACK(const void* p_argument) {
