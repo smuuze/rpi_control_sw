@@ -247,7 +247,7 @@ static void main_MQTT_MESSAGE_RECEIVED_CALLBACK(const void* p_argument) {
 
 static void main_MQTT_MESSAGE_SEND_FAILED_CALLBACK(const void* p_argument) {
 
-	DEBUG_TRACE_STR((const char*) p_argument, "main_MQTT_MESSAGE_SEND_FAILED_CALLBACK()");
+	DEBUG_PASS("main_MQTT_MESSAGE_SEND_FAILED_CALLBACK()");
 
 	if (MAIN_STATUS_is_set(MAIN_STATUS_CONSOLE_ACTIVE)) {
 		console_write_number(MAIN_TIMER_elapsed());
@@ -255,12 +255,12 @@ static void main_MQTT_MESSAGE_SEND_FAILED_CALLBACK(const void* p_argument) {
 		console_write("Send MQTT-Message has FAILED !!!");
 	}
 	
-	log_message_string("MQTT message transmit has FAILED - message: ", (const char*) p_argument);
+	log_message("MQTT message transmit has FAILED");
 }
 
 static void main_MQTT_MESSAGE_SEND_SUCCEEDED_CALLBACK(const void* p_argument) {
 
-	DEBUG_TRACE_STR((const char*) p_argument, "main_MQTT_MESSAGE_SEND_SUCCEEDED_CALLBACK()");
+	DEBUG_PASS("main_MQTT_MESSAGE_SEND_SUCCEEDED_CALLBACK()");
 
 	if (MAIN_STATUS_is_set(MAIN_STATUS_CONSOLE_ACTIVE)) {
 		console_write_number(MAIN_TIMER_elapsed());
