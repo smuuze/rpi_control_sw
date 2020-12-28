@@ -219,16 +219,31 @@ static void main_MQTT_CONNECTION_ESTABLISHED_CALLBACK(const void* p_argument) {
 
 static void main_MQTT_CONNECTION_LOST_CALLBACK(const void* p_argument) {
 
-	(void) p_argument;
-	DEBUG_PASS("main_MQTT_CONNECTION_LOST_CALLBACK()");
+	if (p_argument != NULL) {
 
-	if (MAIN_STATUS_is_set(MAIN_STATUS_CONSOLE_ACTIVE)) {
-		console_write_number(MAIN_TIMER_elapsed());
-		console_write(" - ");
-		console_write_line("MQTT Connection Lost");
+		DEBUG_TRACE_STR((const char*)p_argument, "main_MQTT_CONNECTION_LOST_CALLBACK() - Cause:");
+
+		if (MAIN_STATUS_is_set(MAIN_STATUS_CONSOLE_ACTIVE)) {
+			console_write_number(MAIN_TIMER_elapsed());
+			console_write(" - MQTT Connection Lost - Cause: ");
+			console_write_line((const char*)p_argument);
+		}
+		
+		log_message_string("MQTT connection lost - Cause: ", (const char*)p_argument);
+
+	} else {
+
+		DEBUG_PASS("main_MQTT_CONNECTION_LOST_CALLBACK()");
+
+		if (MAIN_STATUS_is_set(MAIN_STATUS_CONSOLE_ACTIVE)) {
+			console_write_number(MAIN_TIMER_elapsed());
+			console_write(" - ");
+			console_write_line("MQTT Connection Lost");
+		}
+		
+		log_message("MQTT connection lost");
 	}
-	
-	log_message("MQTT connection lost");
+
 }
 
 static void main_MQTT_MESSAGE_RECEIVED_CALLBACK(const void* p_argument) {
