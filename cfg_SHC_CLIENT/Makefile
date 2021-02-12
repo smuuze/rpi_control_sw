@@ -9,7 +9,7 @@ PROJECT = shcClient
 #-----------------------------------------------------------------------------
 
 VERSION_MAJOR		:= 5
-VERSION_MINOR		:= 7
+VERSION_MINOR		:= 9
 
 #-----------------------------------------------------------------------------
 
@@ -68,6 +68,7 @@ DRIVER_MODULE_CFG += SPI0
 PROTOCOL_CFG = 
 PROTOCOL_CFG += RPI_PROTOCOL_HOST
 PROTOCOL_CFG += MQTT_PROTOCOL
+PROTOCOL_CFG += JSON_PARSER
 
 #-----------------------------------------------------------------------------
 

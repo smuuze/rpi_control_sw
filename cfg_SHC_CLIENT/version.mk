@@ -1,8 +1,8 @@
 
 # ------------------
 
-VERSION_MAJOR = 4
-VERSION_MINOR = 11
+VERSION_MAJOR = 5
+VERSION_MINOR = 9
 
 # ------------------
 #
