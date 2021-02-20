@@ -54,9 +54,9 @@ int main(int argc, char* argv[]) {
 	u16 start_time_u16 = MAIN_U16_TIMER_start_time();
 	u32 start_time_u32 = MAIN_U32_TIMER_start_time();
 
-	printf("Start-Time u8  - Signed: %d - Unsigned %u ", start_time_u8,  start_time_u8);
-	printf("Start-Time u16 - Signed: %d - Unsigned %u ", start_time_u16, start_time_u16);
-	printf("Start-Time u32 - Signed: %d - Unsigned %u ", start_time_u32, start_time_u32);
+	printf("Start-Time u8  - Signed: %d - Unsigned %u \n", start_time_u8,  start_time_u8);
+	printf("Start-Time u16 - Signed: %d - Unsigned %u \n", start_time_u16, start_time_u16);
+	printf("Start-Time u32 - Signed: %d - Unsigned %u \n", start_time_u32, start_time_u32);
 
 	return 0;
 }
