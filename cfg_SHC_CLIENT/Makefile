@@ -35,6 +35,8 @@ CSRCS += main_shc_client.c
 
 COMMON_MODULES =
 COMMON_MODULES += QEUE
+COMMON_MODULES += DATETIME
+COMMON_MODULES += STRING
 
 #-----------------------------------------------------------------------------
 
