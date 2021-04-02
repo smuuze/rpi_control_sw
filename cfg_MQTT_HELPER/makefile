@@ -20,7 +20,7 @@ BOARD_ID = RASPBERRYPI
 #-----------------------------------------------------------------------------
 
 VERSION_MAJOR		:= 1
-VERSION_MINOR		:= 0
+VERSION_MINOR		:= 1
 
 #-----------------------------------------------------------------------------
 
@@ -45,6 +45,8 @@ CSRCS += main_mqtt_helper.c
 
 COMMON_MODULES = 
 COMMON_MODULES += QEUE
+COMMON_MODULES += DATETIME
+COMMON_MODULES += STRING
 
 #-----------------------------------------------------------------------------
 
